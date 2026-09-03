@@ -11,7 +11,7 @@ config-version = 2
 after-startup-command = []
 
 # Start AeroSpace at login
-start-at-login = false
+start-at-login = true
 
 # Automatically reload the config when the config file is saved
 # After setting this to true, reload once manually to start the auto-reloading
@@ -50,7 +50,7 @@ automatically-unhide-macos-hidden-apps = false
 # even when they are invisible.
 # This config option is only available since 'config-version = 2'
 # Fallback value (if you omit the key): persistent-workspaces = []
-persistent-workspaces = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "N", "C", "S", "T"]
+persistent-workspaces = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "N", "C", "S", "T", "O", "W"]
 
 # A callback that runs every time binding mode changes
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
@@ -97,6 +97,14 @@ run = 'move-node-to-workspace S'
 if.app-id = 'com.microsoft.teams2'
 run = 'move-node-to-workspace T'
 
+[[on-window-detected]]
+if.app-id = 'com.microsoft.Outlook'
+run = 'move-node-to-workspace O'
+
+[[on-window-detected]]
+if.app-id = 'dev.warp.Warp-Stable'
+run = 'move-node-to-workspace W'
+
 # 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
 # 'main' binding mode must be always presented
@@ -133,12 +141,16 @@ run = 'move-node-to-workspace T'
     alt-b = 'exec-and-forget open -a "Google Chrome"'
     alt-e = 'exec-and-forget open -a Cursor'
     alt-t = ['workspace T', 'exec-and-forget open -a "Microsoft Teams"']
+    alt-o = ['workspace O', 'exec-and-forget open -a "Microsoft Outlook"']
+    alt-w = ['workspace W', 'exec-and-forget open -a Warp']
 
     # Move the focused window to an app's dedicated workspace
     alt-shift-n = 'move-node-to-workspace N'
     alt-shift-c = 'move-node-to-workspace C'
     alt-shift-s = 'move-node-to-workspace S'
     alt-shift-t = 'move-node-to-workspace T'
+    alt-shift-o = 'move-node-to-workspace O'
+    alt-shift-w = 'move-node-to-workspace W'
 
     # i3-style: kill focused window (i3 default: mod+shift+q)
     alt-shift-q = 'close'

@@ -1,0 +1,8 @@
+[user]
+	name = Your Name
+	email = you@example.com
+	# signingkey = <your GPG key ID>
+[commit]
+	gpgsign = true
+[gpg]
+	program = /opt/homebrew/bin/gpg
