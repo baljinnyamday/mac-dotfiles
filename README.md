@@ -1,3 +1,21 @@
+# mac-dotfiles
+
+## Usage
+
+- `./install.sh` — symlinks AeroSpace/skhd/yabai/starship/nvim configs from
+  this repo into `$HOME`. `.zshrc` and `.gitconfig` in this repo are
+  sanitized templates (real secrets redacted), so they're only copied in
+  when you don't already have one on the machine — never overwritten.
+- `./push.sh` — copies your real dotfiles from `$HOME` back into this repo,
+  redacting known machine/company-specific values (internal package index
+  URL, git name/email/signing key) along the way, then commits and pushes.
+  Run this after you change a dotfile locally.
+- `./scripts/link-agent-docs.sh [dir]` — run inside any project repo to
+  make `CLAUDE.md` and `AGENTS.md` one file instead of two that drift apart
+  (symlinks one to the other, keeping whichever is newer as the source).
+
+## Notes
+
 defaults write -g InitialKeyRepeat -int 12 <br>
 defaults write -g KeyRepeat -int 1
 ```
