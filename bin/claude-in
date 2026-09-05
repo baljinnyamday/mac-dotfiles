@@ -1,0 +1,14 @@
+#!/bin/zsh
+# Open a new Ghostty window running Claude Code in a folder.
+# Usage: claude-in <folder> [claude args...]
+#   claude-in bagsh                 # ~/coding/bagsh
+#   claude-in ~/some/path --model opus
+
+CODING_DIR="$HOME/coding"
+
+[[ -n "$1" ]] || { echo "usage: claude-in <folder> [claude args...]" >&2; exit 1 }
+name="$1"; shift; dir="$name"
+[[ -d "$dir" ]] || dir="$CODING_DIR/$dir"
+[[ -d "$dir" ]] || { echo "no such folder: $name" >&2; exit 1 }
+
+open -na Ghostty.app --args --working-directory="${dir:A}" -e "$HOME/.local/bin/claude" "$@"

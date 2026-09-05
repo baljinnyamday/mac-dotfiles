@@ -1,0 +1,29 @@
+# ~/.gitconfig -- symlinked from ~/repos/mac-dotfiles/git/.gitconfig
+# Identity and signing live in ~/.gitconfig.local (not tracked), e.g.
+#   [user]   name = ... / email = ... / signingkey = ...
+#   [commit] gpgsign = true
+[core]
+	pager = delta
+	editor = cursor --wait
+[init]
+	defaultBranch = main
+[push]
+	autoSetupRemote = true
+[fetch]
+	prune = true
+[rerere]
+	enabled = true
+[diff]
+	algorithm = histogram
+[branch]
+	sort = -committerdate
+[merge]
+	conflictStyle = zdiff3
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true
+[gpg]
+	program = /opt/homebrew/bin/gpg
+[include]
+	path = ~/.gitconfig.local

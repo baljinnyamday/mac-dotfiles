@@ -1,67 +1,61 @@
 # mac-dotfiles
 
-## Usage
+Every config here is symlinked into `$HOME`, so editing a dotfile in place
+edits this repo. Commit and push when you're done.
 
-- `./install.sh` — symlinks AeroSpace/skhd/yabai/starship/nvim configs from
-  this repo into `$HOME`. `.zshrc` and `.gitconfig` in this repo are
-  sanitized templates (real secrets redacted), so they're only copied in
-  when you don't already have one on the machine — never overwritten.
-- `./push.sh` — copies your real dotfiles from `$HOME` back into this repo,
-  redacting known machine/company-specific values (internal package index
-  URL, git name/email/signing key) along the way, then commits and pushes.
-  Run this after you change a dotfile locally.
-- `./scripts/link-agent-docs.sh [dir]` — run inside any project repo to
-  make `CLAUDE.md` and `AGENTS.md` one file instead of two that drift apart
-  (symlinks one to the other, keeping whichever is newer as the source).
+## Fresh Mac
 
-## Notes
-
-defaults write -g InitialKeyRepeat -int 12 <br>
-defaults write -g KeyRepeat -int 1
-```
-export ZSH="$HOME/.oh-my-zsh" &&
-git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git $ZSH/plugins/zsh-autocomplete &&
-git clone https://github.com/zdharma-continuum/fast-syntax-highlighting.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/fast-syntax-highlighting &&
-git clone https://github.com/zsh-users/zsh-syntax-highlighting.git $ZSH/plugins/zsh-syntax-highlighting &&
-git clone https://github.com/zsh-users/zsh-autosuggestions.git $ZSH/plugins/zsh-autosuggestions &&
+```sh
+xcode-select --install
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+git clone git@github.com:baljinnyamday/mac-dotfiles.git ~/repos/mac-dotfiles
+cd ~/repos/mac-dotfiles
+./install.sh --brew   # symlink configs, then brew bundle
+./macos.sh            # key repeat, dock, finder defaults
 ```
 
-```
-brew install \
-  wget \
-  exa \
-  git \
-  nvm \
-  pnpm \
-  graphicsmagick \
-  commitzen \
-  cmatrix \
-  vips \
-  python
+Then fill in `~/.gitconfig.local` (name, email, signing key) and put any
+machine-specific env, such as a work package index or tokens, in
+`~/.zshrc.local`. Neither file is tracked.
 
-&&
+## What's here
 
-brew install --cask \
-  bitwarden \
-  google-chrome  \
-  firefox \
-  brave-browser \
-  tor \
-  iterm2 \
-  visual-studio-code \
-  sublime-text \
-  docker \
-  rectangle \
-  slack \
-  discord \
-  signal \
-  vlc \
-  calibre \
-  figma \
-  imageoptim \
-  maccy \
-  protonvpn \
-  zoom \
-  skype
+| Path | Linked to | Notes |
+|---|---|---|
+| `zsh/` | `~/.zshrc`, `~/.zshenv` | starship, zoxide, fzf, direnv, nvm, pnpm, bun, uv |
+| `git/` | `~/.gitconfig`, `~/.config/git/ignore` | delta pager, zdiff3, identity from `~/.gitconfig.local` |
+| `aerospace/` | `~/.aerospace.toml` | i3-style tiling, see keys below |
+| `ghostty/` | `~/.config/ghostty/config` | Catppuccin Mocha, JetBrainsMono Nerd Font |
+| `starship/` | `~/.config/starship.toml` | gruvbox powerline prompt |
+| `tmux/` | `~/.tmux.conf` | |
+| `nvim/` | `~/.config/nvim` | |
+| `bin/` | `~/.local/bin/` | `claude-in <folder>`, `link-agent-docs [dir]` |
+| `Brewfile` | | refresh with `brew bundle dump --force --describe` |
+| `macos.sh` | | `defaults write` settings |
 
-```
+## AeroSpace keys
+
+`alt` is the modifier.
+
+| Key | Action |
+|---|---|
+| alt-enter | new Ghostty window |
+| alt-h / j / k / l | focus window (wraps around) |
+| alt-shift-h / j / k / l | move window |
+| ctrl-alt-h / j / k / l | focus monitor |
+| ctrl-alt-shift-h / l | move window to monitor |
+| alt-1 … 9, alt-0 | workspace 1 … 9, 0 |
+| alt-shift-1 … 0 | move window to workspace |
+| alt-tab | previous workspace |
+| alt-shift-tab | move workspace to next monitor |
+| alt-n / c / s / t / o / w / e | Notion / Claude / Slack / Teams / Outlook / Warp / Cursor workspace, launches the app |
+| alt-shift-n / c / s / t / o / w / e | move window to that app's workspace |
+| alt-b | open Chrome |
+| alt-f | fullscreen |
+| alt-shift-space | toggle floating |
+| alt-slash, alt-comma | tiles / accordion layout |
+| alt-minus, alt-equal | shrink / grow |
+| alt-r | resize mode: h/j/k/l, `=` balances, esc |
+| alt-shift-q | close window |
+| alt-shift-r | reload config |
+| alt-shift-; | service mode: r flatten, f float, backspace close others, alt-shift-hjkl join |

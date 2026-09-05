@@ -1,0 +1,168 @@
+# ~/.aerospace.toml -- symlinked from ~/repos/mac-dotfiles/aerospace/aerospace.toml
+# i3-style bindings, alt is the modifier. Docs: https://nikitabobko.github.io/AeroSpace/guide
+config-version = 2
+
+after-startup-command = []
+start-at-login = true
+auto-reload-config = false
+
+# Normalizations keep the window tree sane. Use the service mode's join-with
+# instead of manual splits. https://nikitabobko.github.io/AeroSpace/guide#normalization
+enable-normalization-flatten-containers = true
+enable-normalization-opposite-orientation-for-nested-containers = true
+
+accordion-padding = 30
+default-root-container-layout = 'tiles'
+default-root-container-orientation = 'auto'
+
+# Move the mouse to the newly focused monitor
+on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
+automatically-unhide-macos-hidden-apps = false
+
+# Workspaces that survive being empty. Letters are app-dedicated (see on-window-detected).
+persistent-workspaces = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "N", "C", "S", "T", "O", "W", "E"]
+
+on-mode-changed = []
+focus-follows-mouse.enabled = false
+key-mapping.preset = 'qwerty'
+
+gaps.inner.horizontal = 0
+gaps.inner.vertical =   0
+gaps.outer.left =       0
+gaps.outer.bottom =     0
+gaps.outer.top =        0
+gaps.outer.right =      0
+
+# Pin apps to their own workspace so they always land on the same "screen".
+# https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-apps-with-on-window-detected
+[[on-window-detected]]
+if.app-id = 'notion.id'
+run = 'move-node-to-workspace N'
+
+[[on-window-detected]]
+if.app-id = 'com.anthropic.claudefordesktop'
+run = 'move-node-to-workspace C'
+
+[[on-window-detected]]
+if.app-id = 'com.tinyspeck.slackmacgap'
+run = 'move-node-to-workspace S'
+
+[[on-window-detected]]
+if.app-id = 'com.microsoft.teams2'
+run = 'move-node-to-workspace T'
+
+[[on-window-detected]]
+if.app-id = 'com.microsoft.Outlook'
+run = 'move-node-to-workspace O'
+
+[[on-window-detected]]
+if.app-id = 'dev.warp.Warp-Stable'
+run = 'move-node-to-workspace W'
+
+[[on-window-detected]]
+if.app-id = 'com.todesktop.230313mzl4w4u92'
+run = 'move-node-to-workspace E'
+
+[mode.main.binding]
+    # Terminal
+    alt-enter = 'exec-and-forget open -na Ghostty'
+
+    # Jump to an app's workspace, launching the app there if it isn't running
+    alt-n = ['workspace N', 'exec-and-forget open -a Notion']
+    alt-c = ['workspace C', 'exec-and-forget open -a Claude']
+    alt-s = ['workspace S', 'exec-and-forget open -a Slack']
+    alt-t = ['workspace T', 'exec-and-forget open -a "Microsoft Teams"']
+    alt-o = ['workspace O', 'exec-and-forget open -a "Microsoft Outlook"']
+    alt-w = ['workspace W', 'exec-and-forget open -a Warp']
+    alt-b = 'exec-and-forget open -a "Google Chrome"'
+    alt-e = ['workspace E', 'exec-and-forget open -a Cursor']
+
+    # Move the focused window to an app's workspace
+    alt-shift-n = 'move-node-to-workspace N'
+    alt-shift-c = 'move-node-to-workspace C'
+    alt-shift-s = 'move-node-to-workspace S'
+    alt-shift-t = 'move-node-to-workspace T'
+    alt-shift-o = 'move-node-to-workspace O'
+    alt-shift-w = 'move-node-to-workspace W'
+    alt-shift-e = 'move-node-to-workspace E'
+
+    # Focus (wraps around inside the workspace, like i3)
+    alt-h = 'focus --boundaries-action wrap-around-the-workspace left'
+    alt-j = 'focus --boundaries-action wrap-around-the-workspace down'
+    alt-k = 'focus --boundaries-action wrap-around-the-workspace up'
+    alt-l = 'focus --boundaries-action wrap-around-the-workspace right'
+
+    # Move window
+    alt-shift-h = 'move left'
+    alt-shift-j = 'move down'
+    alt-shift-k = 'move up'
+    alt-shift-l = 'move right'
+
+    # Monitors: ctrl-alt-hjkl focuses the next screen, add shift to take the window along
+    ctrl-alt-h = 'focus-monitor --wrap-around left'
+    ctrl-alt-j = 'focus-monitor --wrap-around next'
+    ctrl-alt-k = 'focus-monitor --wrap-around prev'
+    ctrl-alt-l = 'focus-monitor --wrap-around right'
+    ctrl-alt-shift-h = 'move-node-to-monitor --wrap-around --focus-follows-window left'
+    ctrl-alt-shift-l = 'move-node-to-monitor --wrap-around --focus-follows-window right'
+
+    # Layout
+    alt-f = 'fullscreen'
+    alt-shift-space = 'layout floating tiling'
+    alt-slash = 'layout tiles horizontal vertical'
+    alt-comma = 'layout accordion horizontal vertical'
+    alt-minus = 'resize smart -50'
+    alt-equal = 'resize smart +50'
+    alt-r = 'mode resize'
+
+    # Workspaces 1-9, then 0 (i3's mod+0 -> workspace 10)
+    alt-1 = 'workspace 1'
+    alt-2 = 'workspace 2'
+    alt-3 = 'workspace 3'
+    alt-4 = 'workspace 4'
+    alt-5 = 'workspace 5'
+    alt-6 = 'workspace 6'
+    alt-7 = 'workspace 7'
+    alt-8 = 'workspace 8'
+    alt-9 = 'workspace 9'
+    alt-0 = 'workspace 0'
+
+    alt-shift-1 = 'move-node-to-workspace 1'
+    alt-shift-2 = 'move-node-to-workspace 2'
+    alt-shift-3 = 'move-node-to-workspace 3'
+    alt-shift-4 = 'move-node-to-workspace 4'
+    alt-shift-5 = 'move-node-to-workspace 5'
+    alt-shift-6 = 'move-node-to-workspace 6'
+    alt-shift-7 = 'move-node-to-workspace 7'
+    alt-shift-8 = 'move-node-to-workspace 8'
+    alt-shift-9 = 'move-node-to-workspace 9'
+    alt-shift-0 = 'move-node-to-workspace 0'
+
+    alt-tab = 'workspace-back-and-forth'
+    alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
+
+    alt-shift-q = 'close'
+    alt-shift-r = 'reload-config'
+    alt-shift-semicolon = 'mode service'
+
+[mode.resize.binding]
+    # 'smart' resizes along the split's own axis, so hjkl means the same thing
+    # whether the parent split is horizontal or vertical.
+    h = 'resize smart -50'
+    l = 'resize smart +50'
+    j = 'resize smart-opposite +50'
+    k = 'resize smart-opposite -50'
+    equal = 'balance-sizes'
+    enter = 'mode main'
+    esc = 'mode main'
+
+[mode.service.binding]
+    esc = ['reload-config', 'mode main']
+    r = ['flatten-workspace-tree', 'mode main']     # reset layout
+    f = ['layout floating tiling', 'mode main']     # toggle floating
+    backspace = ['close-all-windows-but-current', 'mode main']
+
+    alt-shift-h = ['join-with left', 'mode main']
+    alt-shift-j = ['join-with down', 'mode main']
+    alt-shift-k = ['join-with up', 'mode main']
+    alt-shift-l = ['join-with right', 'mode main']

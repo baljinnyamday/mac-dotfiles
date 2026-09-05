@@ -1,0 +1,29 @@
+# --- THEME & APPEARANCE ---
+# Built-in themes (run `ghostty +list-themes` to see all)
+theme = Catppuccin Mocha
+
+# The "Blur" effect (makes it look native and premium)
+background-opacity = 0.95
+background-blur-radius = 20
+
+# Window Padding (so text isn't glued to the edge)
+window-padding-x = 10
+window-padding-y = 10
+
+# --- FONTS ---
+# Nerd Font variant of JetBrains Mono (includes powerline/dev icons)
+font-family = "JetBrainsMono NFM"
+font-size = 14
+# Enable ligatures (so => turns into an arrow)
+font-feature = calt
+
+# --- BEHAVIOR ---
+# Copy automatically when you select text (optional, but handy)
+copy-on-select = true
+
+# Mouse support (scrolling in vim/nano)
+mouse-shift-capture = true
+
+# --- TABS & WINDOWS ---
+# MacOS Native tabs look
+macos-titlebar-style = tabs
