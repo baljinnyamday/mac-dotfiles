@@ -26,6 +26,7 @@ machine-specific env, such as a work package index or tokens, in
 | `git/` | `~/.gitconfig`, `~/.config/git/ignore` | delta pager, zdiff3, identity from `~/.gitconfig.local` |
 | `aerospace/` | `~/.aerospace.toml` | i3-style tiling, see keys below |
 | `ghostty/` | `~/.config/ghostty/config` | Catppuccin Mocha, JetBrainsMono Nerd Font |
+| `warp/` | `~/.warp/settings.toml` | vertical tabs, JetBrainsMono Nerd Font, Warp hot-reloads edits |
 | `starship/` | `~/.config/starship.toml` | gruvbox powerline prompt |
 | `tmux/` | `~/.tmux.conf` | |
 | `nvim/` | `~/.config/nvim` | |
