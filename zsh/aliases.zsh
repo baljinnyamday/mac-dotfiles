@@ -62,8 +62,8 @@ wrm()  {
 fcd()   { cd "$(fd -t d -d 1 . packages applications 2>/dev/null | fzf)"; }
 frg()   { local f; f=$(rg --line-number --no-heading --smart-case "$1" | fzf -d: --nth=3.. --preview 'bat --style=numbers --color=always --highlight-line {2} {1}' | cut -d: -f1); [[ -n "$f" ]] && cursor "$f"; }
 fbr()   { git checkout "$(git branch --all | grep -v HEAD | sed 's/^[* ]*//;s#remotes/origin/##' | sort -u | fzf)"; }
-fkill() { ps aux | sed 1d | fzf -m --header='select process(es) to kill' | awk '{print $2}' | xargs -r kill -9; }
-dsh()   { docker exec -it "$(docker ps --format '{{.Names}}' | fzf)" sh; }
+fkill() { lsof -nP -iTCP -sTCP:LISTEN | sed 1d | fzf -m --header='select port(s)/process(es) to kill' | awk '{print $2}' | sort -u | xargs -r kill -9; }
+dsh()   { local c; c=$(docker ps --format '{{.Names}}' | fzf); [[ -n "$c" ]] && (docker exec -it "$c" bash || docker exec -it "$c" sh); }
 ff()    { local f; f=$(fd --type f --hidden --exclude .git | fzf --preview 'bat --style=numbers --color=always {}'); [[ -n "$f" ]] && cursor "$f"; }
 
 # --- zsh: global + suffix aliases ---
