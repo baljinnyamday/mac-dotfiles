@@ -38,7 +38,7 @@ Reference for everything in `zsh/aliases.zsh`, the command scripts in `bin/`, an
 - `wc <name> [base]` — new worktree + branch in `../<name>`, and cds you into it; branches from `base` (e.g. `dev`, `origin/staging`), defaulting to the current branch
 - `wcd` — fzf-pick an existing worktree, cd into it
 - `ship [gh args]` — pushes current branch (`-u`) and opens a PR with `gh pr create --fill`; extra args go to `gh`, e.g. `ship --base dev`
-- `wrm` — fzf-pick a worktree, removes it and deletes its local branch (run this after a PR merges, from outside the worktree: `wcd` to the main checkout first). Refuses if the worktree has uncommitted/untracked files; keeps the branch if its commits aren't merged or pushed anywhere (`git branch -D <name>` to force, e.g. after a squash merge)
+- `wrm [-f]` — fzf-pick a worktree, removes it and deletes its local branch (run this after a PR merges, from outside the worktree: `wcd` to the main checkout first). Refuses if the worktree has uncommitted/untracked files; keeps the branch if its commits aren't merged or pushed anywhere. `-f` removes anyway and force-deletes the branch (what you want after a squash merge); it lists and asks before throwing away uncommitted files, and a deleted branch comes back with `git branch <name> <sha>` using the sha it prints
 
 ## fzf pickers, everyday use
 

@@ -1,15 +1,43 @@
 #!/usr/bin/env bash
-# wrm -- fzf-pick a git worktree, remove it and delete its local branch. Run after the PR merges,
+# wrm [-f] -- fzf-pick a git worktree, remove it and delete its local branch. Run after the PR merges,
 # from outside the worktree (e.g. `wcd` to the main checkout first).
-# Refuses if the worktree has uncommitted or untracked files (gitignored ones like .venv are fine),
-# and keeps the branch if its commits exist nowhere else (`git branch -D <name>` to force).
+#   (default) refuses if the worktree has uncommitted or untracked files (gitignored ones like .venv
+#             are fine), and keeps the branch if git can't see its commits merged/pushed anywhere
+#   -f        removes anyway and force-deletes the branch (e.g. after a squash merge). Asks first if
+#             uncommitted files would be lost; a deleted branch can be restored from the sha git prints
 set -euo pipefail
 
-line=$(git worktree list | fzf --prompt='remove which worktree? ') || exit 0
+force=0
+case "${1:-}" in
+  -f|--force) force=1 ;;
+  "") ;;
+  *) echo 'usage: wrm [-f]' >&2; exit 1 ;;
+esac
+
+prompt='remove which worktree? '
+[[ "$force" == 1 ]] && prompt='FORCE remove which worktree? '
+line=$(git worktree list | fzf --prompt="$prompt") || exit 0
 wt_path=$(awk '{print $1}' <<< "$line")
 branch=$(awk -F'[][]' '{print $2}' <<< "$line")   # empty for a detached HEAD
 
-git worktree remove "$wt_path"
+if [[ "$force" == 0 ]]; then
+  git worktree remove "$wt_path"
+  if [[ -n "$branch" ]]; then
+    git branch -d "$branch"
+  fi
+  exit 0
+fi
+
+# uncommitted work is the one thing git can't bring back, so confirm before discarding it
+dirty=$(git -C "$wt_path" status --porcelain 2>/dev/null || true)
+if [[ -n "$dirty" ]]; then
+  echo "$wt_path has uncommitted/untracked changes that will be LOST:" >&2
+  head -20 <<< "$dirty" >&2
+  read -r -p "delete them? [y/N] " answer || answer=""
+  [[ "$answer" == [yY]* ]] || { echo "aborted, nothing removed" >&2; exit 1; }
+fi
+
+git worktree remove --force "$wt_path"
 if [[ -n "$branch" ]]; then
-  git branch -d "$branch"
+  git branch -D "$branch"   # prints "(was <sha>)": `git branch <name> <sha>` restores it
 fi
