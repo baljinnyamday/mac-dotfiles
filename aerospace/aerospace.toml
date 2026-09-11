@@ -56,7 +56,7 @@ if.app-id = 'com.microsoft.Outlook'
 run = 'move-node-to-workspace O'
 
 [[on-window-detected]]
-if.app-id = 'dev.warp.Warp-Stable'
+if.app-id = 'com.cmuxterm.app'
 run = 'move-node-to-workspace W'
 
 [[on-window-detected]]
@@ -73,7 +73,7 @@ run = 'move-node-to-workspace E'
     alt-s = ['workspace S', 'exec-and-forget open -a Slack']
     alt-t = ['workspace T', 'exec-and-forget open -a "Microsoft Teams"']
     alt-o = ['workspace O', 'exec-and-forget open -a "Microsoft Outlook"']
-    alt-w = ['workspace W', 'exec-and-forget open -a Warp']
+    alt-w = ['workspace W', 'exec-and-forget open -a cmux']
     alt-b = 'exec-and-forget open -a "Google Chrome"'
     alt-e = ['workspace E', 'exec-and-forget open -a Cursor']
 
