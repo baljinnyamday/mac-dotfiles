@@ -23,6 +23,7 @@ link git/.gitconfig           .gitconfig
 link git/ignore               .config/git/ignore
 link aerospace/aerospace.toml .aerospace.toml
 link ghostty/config           .config/ghostty/config
+link cmux/cmux.json           .config/cmux/cmux.json
 link warp/settings.toml       .warp/settings.toml
 link starship/starship.toml   .config/starship.toml
 link tmux/.tmux.conf          .tmux.conf

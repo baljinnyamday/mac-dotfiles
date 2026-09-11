@@ -3,7 +3,9 @@
 # ~/.zshrc.local, which is sourced at the end and never tracked.
 
 # --- PATH ---
-[ -x /opt/homebrew/bin/brew ] && eval "$(/opt/homebrew/bin/brew shellenv)"
+typeset -U path fpath                         # drop duplicate entries
+# .zprofile already runs this for login shells; only needed for non-login shells
+[[ -z $HOMEBREW_PREFIX && -x /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
 export PATH="$HOME/.local/bin:$PATH"          # uv, claude, cursor-agent, own scripts
 export PATH="$HOME/.opencode/bin:$PATH"
 export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
@@ -19,13 +21,34 @@ case ":$PATH:" in
 esac
 
 # --- Node (nvm) ---
+# Sourcing nvm.sh costs ~1s per shell, so put the default Node on PATH directly
+# and only load nvm itself the first time `nvm` is run.
 export NVM_DIR="$HOME/.nvm"
-[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && . "/opt/homebrew/opt/nvm/nvm.sh"
-[ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && . "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
+() {
+  local want=""
+  [[ -r $NVM_DIR/alias/default ]] && want=$(<$NVM_DIR/alias/default)
+  [[ $want == (node|stable|lts/*) ]] && want=""   # "latest" aliases -> newest installed
+  local -a bins=($NVM_DIR/versions/node/v${want#v}*/bin(N/nOn))
+  (( $#bins )) && path=($bins[1] $path)
+}
+nvm() {
+  unfunction nvm
+  . "/opt/homebrew/opt/nvm/nvm.sh"
+  [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && . "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
+  nvm "$@"
+}
 
 # --- Completions ---
 [ -d "$HOME/.docker/completions" ] && fpath=("$HOME/.docker/completions" $fpath)
-autoload -Uz compinit && compinit
+# Full compinit scan at most once an hour; otherwise trust the cached dump.
+# New tool's completions not showing yet? rm ~/.zcompdump && reload
+autoload -Uz compinit
+() {
+  setopt local_options extended_glob
+  local dump=${ZDOTDIR:-$HOME}/.zcompdump
+  # compinit leaves an unchanged dump untouched, so touch it or every shell would rescan
+  if [[ -n $dump(#qN.mm+60) ]]; then compinit && touch $dump; else compinit -C; fi
+}
 [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
 # --- Shell tools ---
@@ -65,6 +88,5 @@ source "$HOME/mac-dotfiles/zsh/aliases.zsh"
 
 ccw() { CLAUDE_CONFIG_DIR="$HOME/.ccw" claude --model claude-fable-5-1 "$@"; }
 
-
-# Added by Antigravity CLI installer
-export PATH="/Users/baljinnyam.dayan/.local/bin:$PATH"
+# Dedupe once more: `export PATH=...` lines bypass typeset -U (.zprofile also adds ~/.local/bin)
+path=($path)

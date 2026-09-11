@@ -1,0 +1,18 @@
+{
+  "shortcuts": {
+    "bindings": {
+      "nextSidebarTab": "ctrl+tab",
+      "prevSidebarTab": "ctrl+shift+tab",
+      "focusLeft": "cmd+h",
+      "focusDown": "cmd+j",
+      "focusUp": "cmd+k",
+      "focusRight": "cmd+l"
+    },
+    "when": {
+      "focusLeft": "paneCount > 1",
+      "focusDown": "paneCount > 1",
+      "focusUp": "paneCount > 1",
+      "focusRight": "paneCount > 1"
+    }
+  }
+}
