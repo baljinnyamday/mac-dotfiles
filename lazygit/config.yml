@@ -1,0 +1,105 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/jesseduffield/lazygit/master/schema/config.json
+# ~/Library/Application Support/lazygit/config.yml -- symlinked from ~/mac-dotfiles/lazygit/config.yml
+# Press ? in any panel to see these custom commands next to the built-in keys.
+
+gui:
+  nerdFontsVersion: "3"
+  showRandomTip: false
+  showCommandLog: false
+  expandFocusedSidePanel: true
+  showNumstatInFilesView: true
+  showDivergenceFromBaseBranch: arrowAndNumber
+  border: rounded
+  # Catppuccin Mocha (mauve), matches Ghostty / tmux
+  theme:
+    activeBorderColor: ["#cba6f7", bold]
+    inactiveBorderColor: ["#a6adc8"]
+    searchingActiveBorderColor: ["#f9e2af", bold]
+    optionsTextColor: ["#89b4fa"]
+    selectedLineBgColor: ["#313244"]
+    inactiveViewSelectedLineBgColor: ["#313244"]
+    cherryPickedCommitFgColor: ["#cba6f7"]
+    cherryPickedCommitBgColor: ["#45475a"]
+    markedBaseCommitFgColor: ["#89b4fa"]
+    markedBaseCommitBgColor: ["#f9e2af"]
+    unstagedChangesColor: ["#f38ba8"]
+    defaultFgColor: ["#cdd6f4"]
+  authorColors:
+    "*": "#b4befe"
+
+git:
+  # | cycles between these. Click a line number in the delta view to open it in Cursor.
+  diffRenderers:
+    - name: delta
+      command: delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
+    - name: side-by-side
+      command: delta --dark --paging=never --side-by-side --line-numbers
+  parseEmoji: true
+
+os:
+  edit: "cursor --reuse-window -- {{filename}}"
+  editAtLine: "cursor --reuse-window --goto -- {{filename}}:{{line}}"
+  editAtLineAndWait: "cursor --reuse-window --wait --goto -- {{filename}}:{{line}}"
+  openDirInEditor: "cursor --reuse-window -- {{dir}}"
+
+update:
+  method: never # brew upgrades it
+disableStartupPopups: true
+
+customCommands:
+  # --- claude (same prompts as the cc* aliases) ---
+  - key: <c-g>
+    context: files
+    description: "claude: draft commit message from staged diff, then edit it (ccmsg)"
+    command: >-
+      git diff --staged --quiet && { echo "nothing staged"; exit 1; };
+      git commit -e -m "$(git diff --staged | claude -p 'write a concise conventional-commit message for this diff, one line under 72 chars, no body unless truly needed')"
+    output: terminal
+
+  - key: <c-v>
+    context: localBranches
+    description: "claude: review this branch against main (ccpr)"
+    command: "git diff main...HEAD | claude -p 'review this diff for bugs; be terse'"
+    loadingText: "claude is reviewing..."
+    output: popup
+    outputTitle: "claude review"
+
+  - key: <c-x>
+    context: commits, subCommits
+    description: "claude: explain selected commit (ccx)"
+    command: "git show {{.SelectedCommit.Hash}} | claude -p 'explain what this commit changes and why, concisely'"
+    loadingText: "claude is reading the commit..."
+    output: popup
+    outputTitle: "{{.SelectedCommit.ShortHash}}"
+
+  # --- branch lifecycle ---
+  - key: S
+    context: localBranches
+    description: "ship: push current branch and open a PR (ship)"
+    command: "git push -u origin HEAD && gh pr create --fill"
+    output: terminal
+
+  - key: <c-n>
+    context: localBranches
+    description: "check out an open PR by number"
+    prompts:
+      - type: menuFromCommand
+        title: "Open pull requests"
+        key: PR
+        command: "gh pr list --limit 50"
+        filter: '^(?P<number>\d+)\t(?P<title>[^\t]*)\t(?P<branch>[^\t]*)'
+        valueFormat: "{{ .number }}"
+        labelFormat: "{{ .number | green }} {{ .title }} {{ .branch | blue }}"
+    command: "gh pr checkout {{.Form.PR}}"
+    loadingText: "checking out PR..."
+    output: log
+
+  - key: D
+    context: localBranches
+    description: "delete local branches already merged into main"
+    prompts:
+      - type: confirm
+        title: "Delete merged branches"
+        body: "Delete every local branch merged into main (skips main/master and worktree branches)?"
+    command: "git branch --merged main --format='%(refname:short)' | grep -vxE 'main|master' | xargs -r -n1 git branch -d || true"
+    output: log

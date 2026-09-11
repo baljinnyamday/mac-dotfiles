@@ -1,5 +1,6 @@
 # Brewfile -- install with `brew bundle`, refresh with `brew bundle dump --force --describe`
 tap "hudochenkov/sshpass"
+tap "manaflow-ai/cmux"
 tap "mutagen-io/mutagen"
 tap "nikitabobko/tap"
 tap "supabase/tap"
@@ -116,6 +117,8 @@ brew "zoxide"
 cask "aerospace"
 # Compact TeX distribution as alternative to the full TeX Live / MacTeX
 cask "basictex"
+# Ghostty-based terminal with vertical tabs and agent notifications
+cask "cmux"
 # Brings the power of Copilot coding agent directly to your terminal
 cask "copilot-cli"
 # Voice and text chat software

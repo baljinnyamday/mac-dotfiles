@@ -25,12 +25,14 @@ machine-specific env, such as a work package index or tokens, in
 | `zsh/` | `~/.zshrc`, `~/.zshenv` | starship, zoxide, fzf, direnv, nvm, pnpm, bun, uv |
 | `git/` | `~/.gitconfig`, `~/.config/git/ignore` | delta pager, zdiff3, identity from `~/.gitconfig.local` |
 | `aerospace/` | `~/.aerospace.toml` | i3-style tiling, see keys below |
-| `ghostty/` | `~/.config/ghostty/config` | Catppuccin Mocha, JetBrainsMono Nerd Font |
+| `ghostty/` | `~/.config/ghostty/config` | Catppuccin Mocha, JetBrainsMono Nerd Font, drop-down quick terminal. cmux reads it too |
+| `cmux/` | `~/.config/cmux/cmux.json` | Warp-style vertical tabs on top of Ghostty, ctrl+tab cycles the sidebar |
 | `warp/` | `~/.warp/settings.toml` | vertical tabs, JetBrainsMono Nerd Font, Warp hot-reloads edits |
 | `starship/` | `~/.config/starship.toml` | gruvbox powerline prompt |
-| `tmux/` | `~/.tmux.conf` | |
+| `tmux/` | `~/.tmux.conf` | no plugins, Catppuccin status bar on top, popups for lazygit/claude/sessions |
+| `lazygit/` | `~/Library/Application Support/lazygit/config.yml` | delta diffs, Cursor as editor, claude + gh custom commands |
 | `nvim/` | `~/.config/nvim` | |
-| `bin/` | `~/.local/bin/` | `claude-in <folder>`, `link-agent-docs [dir]` |
+| `bin/` | `~/.local/bin/` | `claude-in <folder>` (new cmux tab, or a Ghostty window outside cmux), `link-agent-docs [dir]`, `tmux-sessionizer [dir]` |
 | `Brewfile` | | refresh with `brew bundle dump --force --describe` |
 | `macos.sh` | | `defaults write` settings |
 
@@ -40,7 +42,8 @@ machine-specific env, such as a work package index or tokens, in
 
 | Key | Action |
 |---|---|
-| alt-enter | new Ghostty window |
+| alt-enter | open cmux |
+| alt-shift-enter | new Ghostty window |
 | alt-h / j / k / l | focus window (wraps around) |
 | alt-shift-h / j / k / l | move window |
 | ctrl-alt-h / j / k / l | focus monitor |
@@ -60,3 +63,58 @@ machine-specific env, such as a work package index or tokens, in
 | alt-shift-q | close window |
 | alt-shift-r | reload config |
 | alt-shift-; | service mode: r flatten, f float, backspace close others, alt-shift-hjkl join |
+
+## Terminal keys
+
+**cmux** (vertical tabs, reads the Ghostty config)
+
+| Key | Action |
+|---|---|
+| cmd-1 … 9 | jump to sidebar tab |
+| ctrl-tab / ctrl-shift-tab | next / previous sidebar tab |
+| cmd-n | new sidebar tab (workspace) |
+| cmd-t | new tab inside the workspace |
+| cmd-b | show / hide sidebar |
+| cmd-shift-r | rename workspace |
+| cmd-d / cmd-shift-d | split right / down |
+| cmd-shift-w | close workspace |
+
+**Ghostty** (horizontal native tabs)
+
+| Key | Action |
+|---|---|
+| cmd-1 … 8, cmd-9 | jump to tab, last tab |
+| ctrl-tab / ctrl-shift-tab | next / previous tab |
+| cmd-shift-left / right | move tab |
+| cmd-shift-r | rename tab |
+| cmd-d / cmd-shift-d | split right / down |
+| cmd-alt-arrows | move between splits |
+| cmd-shift-enter | zoom split |
+| ctrl-\` (anywhere) | drop-down quick terminal |
+
+**tmux** (prefix is ctrl-b)
+
+| Key | Action |
+|---|---|
+| prefix f | fzf session picker (`ts` outside tmux) |
+| prefix w / s | tree of windows / sessions with preview |
+| prefix g / C / t | popup lazygit / claude / scratch shell |
+| prefix \| / - | split right / down in current folder |
+| prefix h j k l, H J K L | move / resize panes (repeatable) |
+| prefix tab, shift-tab | last window, last session |
+| prefix < / > | move window left / right |
+| prefix v | copy mode: v select, ctrl-v block, y copy |
+| prefix X | kill session |
+| prefix r | reload config |
+
+**lazygit** extras (press `?` for everything)
+
+| Where | Key | Action |
+|---|---|---|
+| files | ctrl-g | claude drafts the commit message, you edit it |
+| branches | ctrl-v | claude reviews branch vs main |
+| commits | ctrl-x | claude explains the commit |
+| branches | S | push and open PR |
+| branches | ctrl-n | check out an open PR |
+| branches | D | delete branches merged into main |
+| diff | \| | cycle delta / side-by-side |

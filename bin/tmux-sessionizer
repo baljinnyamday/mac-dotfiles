@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# tmux-sessionizer [dir] -- fzf-pick a project folder and jump to its tmux session,
+# creating it if needed. Folders come from zoxide history plus everything in ~/coding.
+# Works inside tmux (prefix f) and outside (`ts` in zsh).
+set -euo pipefail
+
+if [[ $# -ge 1 ]]; then
+  dir=$(cd "$1" && pwd)
+else
+  dir=$(
+    {
+      zoxide query --list --all 2>/dev/null || true
+      fd --type d --max-depth 1 . "$HOME/coding" 2>/dev/null || true
+    } | sed 's#/$##' | awk 'NF && !seen[$0]++' |
+      fzf --prompt='session> ' --reverse \
+        --preview 'eza -la --icons --color=always {}' --preview-window=right,45%
+  ) || exit 0
+fi
+[[ -z "$dir" ]] && exit 0
+
+# tmux session names can't contain . or :
+name=$(basename "$dir" | tr '.:' '__')
+
+tmux has-session -t "=$name" 2>/dev/null || tmux new-session -d -s "$name" -c "$dir"
+
+if [[ -n "${TMUX:-}" ]]; then
+  tmux switch-client -t "=$name"
+else
+  tmux attach-session -t "=$name"
+fi

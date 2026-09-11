@@ -1,29 +1,55 @@
-# --- THEME & APPEARANCE ---
-# Built-in themes (run `ghostty +list-themes` to see all)
+# ~/.config/ghostty/config -- symlinked from ~/mac-dotfiles/ghostty/config
+# cmux reads this file too (theme, font, colors, cursor), so both apps look the same.
+# Reload: cmd+shift+,   All options: ghostty +show-config --default --docs
+
+# --- theme ---
 theme = Catppuccin Mocha
-
-# The "Blur" effect (makes it look native and premium)
 background-opacity = 0.95
-background-blur-radius = 20
+background-blur = 20
+window-colorspace = display-p3
+unfocused-split-opacity = 0.85
+split-divider-color = #45475a
 
-# Window Padding (so text isn't glued to the edge)
-window-padding-x = 10
-window-padding-y = 10
-
-# --- FONTS ---
-# Nerd Font variant of JetBrains Mono (includes powerline/dev icons)
+# --- font ---
+# Nerd Font Mono variant of JetBrains Mono (powerline + dev icons for starship/eza)
 font-family = "JetBrainsMono NFM"
 font-size = 14
-# Enable ligatures (so => turns into an arrow)
 font-feature = calt
+adjust-cell-height = 6%
 
-# --- BEHAVIOR ---
-# Copy automatically when you select text (optional, but handy)
-copy-on-select = true
-
-# Mouse support (scrolling in vim/nano)
-mouse-shift-capture = true
-
-# --- TABS & WINDOWS ---
-# MacOS Native tabs look
+# --- window ---
 macos-titlebar-style = tabs
+window-padding-x = 12
+window-padding-y = 10
+window-padding-balance = true
+# reopen every window/tab/split where you left it after quitting
+window-save-state = always
+# new tabs go to the end like Warp, not next to the current one
+window-new-tab-position = end
+
+# --- behaviour ---
+# copy selection straight to the system clipboard (cmd+v works right away)
+copy-on-select = clipboard
+mouse-hide-while-typing = true
+# right option acts as alt (meta keys in tmux/nvim); left option still types # and € on a UK keyboard
+macos-option-as-alt = right
+# teach remote hosts about xterm-ghostty so ssh sessions don't break colours/keys
+shell-integration-features = ssh-env,ssh-terminfo,sudo
+# ping me when a command that took >10s finishes while I'm looking elsewhere
+notify-on-command-finish = unfocused
+notify-on-command-finish-action = bell,notify
+notify-on-command-finish-after = 10s
+auto-update = check
+
+# --- quick terminal: drop-down from the top on any app (needs Accessibility permission) ---
+keybind = global:ctrl+grave_accent=toggle_quick_terminal
+quick-terminal-position = top
+quick-terminal-animation-duration = 0.15
+
+# --- keybinds (on top of the defaults) ---
+# Built in already: cmd+1..8 tab, cmd+9 last tab, ctrl+tab / ctrl+shift+tab cycle,
+# cmd+t new tab, cmd+d / cmd+shift+d split, cmd+[ / cmd+] cycle splits,
+# cmd+alt+arrows move between splits, cmd+shift+enter zoom split, cmd+shift+p command palette.
+keybind = super+shift+r=prompt_tab_title
+keybind = super+shift+arrow_left=move_tab:-1
+keybind = super+shift+arrow_right=move_tab:1

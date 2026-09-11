@@ -65,7 +65,8 @@ run = 'move-node-to-workspace E'
 
 [mode.main.binding]
     # Terminal
-    alt-enter = 'exec-and-forget open -na Ghostty'
+    alt-enter = 'exec-and-forget open -a cmux'            # main terminal (vertical tabs)
+    alt-shift-enter = 'exec-and-forget open -na Ghostty'  # plain Ghostty window, e.g. for heavy ssh + tmux
 
     # Jump to an app's workspace, launching the app there if it isn't running
     alt-n = ['workspace N', 'exec-and-forget open -a Notion']

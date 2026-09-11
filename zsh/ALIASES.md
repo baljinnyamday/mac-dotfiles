@@ -45,6 +45,17 @@ Reference for everything in `zsh/aliases.zsh` (and the couple of one-offs in `zs
 - `fkill` — fuzzy-pick listening port(s)/process(es) (from `lsof`), kills them
 - `dsh` — fuzzy-pick a running docker container, shells in (`bash` → `sh` → `docker debug` fallback for shell-less images)
 
+## Terminals
+
+- `ghost` — opens a plain Ghostty window in the current folder. cmux is the everyday terminal, Ghostty is the fallback when cmux feels laggy (ssh + tmux)
+- `cmux .` — opens the current folder as a new cmux sidebar tab (the `cmux` CLI ships with the app)
+
+## tmux
+
+- `ts [dir]` — fzf-pick a folder (zoxide history + `~/coding/*`), jump to its tmux session, creating it if needed. Same picker as `prefix f` inside tmux
+- `ta` — attach to the last tmux session, or start one called `main`
+- `tl` — list tmux sessions
+
 ## Everything else already in `aliases.zsh`
 
 - macOS: `flushdns`, `o` (open .), `ql` (quicklook), `ip`, `pubip`, `cpwd` (copy pwd), `dsclean` (delete .DS_Store), `brewup`

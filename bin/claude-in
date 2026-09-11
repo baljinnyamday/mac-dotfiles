@@ -1,5 +1,6 @@
 #!/bin/zsh
-# Open a new Ghostty window running Claude Code in a folder.
+# Open Claude Code in a folder: a new cmux sidebar tab when run inside cmux,
+# otherwise a new Ghostty window (cmux only takes commands from its own terminals).
 # Usage: claude-in <folder> [claude args...]
 #   claude-in bagsh                 # ~/coding/bagsh
 #   claude-in ~/some/path --model opus
@@ -11,4 +12,9 @@ name="$1"; shift; dir="$name"
 [[ -d "$dir" ]] || dir="$CODING_DIR/$dir"
 [[ -d "$dir" ]] || { echo "no such folder: $name" >&2; exit 1 }
 
-open -na Ghostty.app --args --working-directory="${dir:A}" -e "$HOME/.local/bin/claude" "$@"
+if [[ -n "$CMUX_WORKSPACE_ID" ]] && command -v cmux >/dev/null; then
+  cmux new-workspace --name "${dir:A:t}" --cwd "${dir:A}" --focus true \
+    --command "$HOME/.local/bin/claude ${(j: :)${(q)@}}"
+else
+  open -na Ghostty.app --args --working-directory="${dir:A}" -e "$HOME/.local/bin/claude" "$@"
+fi

@@ -25,6 +25,14 @@ alias dcd='docker compose down'
 alias dcl='docker compose logs -f --tail 100'
 alias pr='pnpm run'
 
+# --- terminals: cmux is the main one, Ghostty is the lightweight fallback ---
+alias ghost='open -na Ghostty --args --working-directory="$PWD"'   # plain Ghostty window in this folder
+
+# --- tmux ---
+alias ts='tmux-sessionizer'                      # fzf-pick a project, jump to its session
+alias ta='tmux attach 2>/dev/null || tmux new -s main'
+alias tl='tmux ls'
+
 # --- claude code (headless / -p) ---
 ccmsg()  { git diff --staged | claude -p "write a concise conventional-commit message for this diff, one line under 72 chars, no body unless truly needed"; }
 ccfix()  { uv run pytest "$@" 2>&1 | claude -p "explain why this test is failing and suggest a fix"; }

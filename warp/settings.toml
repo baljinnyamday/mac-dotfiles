@@ -27,6 +27,7 @@ input_box_type_setting = "universal"
 enabled = true
 hide_title_bar_search_bar = false
 use_latest_prompt_as_title = false
+view_mode = "compact"
 
 [appearance.text]
 font_name = "JetBrainsMono Nerd Font Mono"
