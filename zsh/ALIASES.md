@@ -31,7 +31,7 @@ Reference for everything in `zsh/aliases.zsh` (and the couple of one-offs in `zs
 ## Branch / worktree lifecycle
 
 - `bc <name>` — `git checkout -b <name>`, new branch and switch to it
-- `wc <name>` — new worktree + branch in `../<name>`, and cds you into it
+- `wc <name> [base]` — new worktree + branch in `../<name>`, and cds you into it; branches from `base` (e.g. `dev`, `origin/staging`), defaulting to the current branch
 - `wcd` — fzf-pick an existing worktree, cd into it
 - `ship` — pushes current branch (`-u`) and opens a PR with `gh pr create --fill`
 - `wrm` — fzf-pick a worktree, removes it and deletes its local branch (run this after a PR merges)

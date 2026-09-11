@@ -66,7 +66,7 @@ ccdoh() { if [[ "$1" == -c ]]; then shift; cursor-agent -p --force "$*"; return;
 
 # --- branch / worktree create + merge-back ---
 bc()   { git checkout -b "$1"; }
-wc()   { git worktree add "../$1" -b "$1" && cd "../$1"; }
+wc()   { git worktree add "../$1" -b "$1" "${2:-HEAD}" && cd "../$1"; }  # wc <name> [base], base defaults to current HEAD
 ship() { git push -u origin HEAD && gh pr create --fill; }
 wrm()  {
   local line path branch
