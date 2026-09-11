@@ -114,6 +114,8 @@ brew "yq"
 brew "yt-dlp"
 # Shell extension to navigate your filesystem faster
 brew "zoxide"
+# Fish-like fast/unobtrusive autosuggestions for zsh
+brew "zsh-autosuggestions"
 cask "aerospace"
 # Compact TeX distribution as alternative to the full TeX Live / MacTeX
 cask "basictex"

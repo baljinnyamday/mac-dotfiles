@@ -38,6 +38,14 @@ nvm() {
   nvm "$@"
 }
 
+# --- History ---
+# Big, shared, de-duplicated history; zsh-autosuggestions draws from it
+HISTFILE=${ZDOTDIR:-$HOME}/.zsh_history
+HISTSIZE=100000
+SAVEHIST=100000
+setopt extended_history inc_append_history share_history
+setopt hist_ignore_all_dups hist_ignore_space hist_reduce_blanks
+
 # --- Completions ---
 [ -d "$HOME/.docker/completions" ] && fpath=("$HOME/.docker/completions" $fpath)
 # Full compinit scan at most once an hour; otherwise trust the cached dump.
@@ -79,6 +87,13 @@ alias cc="claude"
 alias zconfig="cursor ~/.zshrc"
 alias reload="source ~/.zshrc"
 source "${${(%):-%x}:A:h}/aliases.zsh"   # next to the real .zshrc, wherever the repo is cloned
+
+# --- Inline suggestions (Warp/fish-style grey ghost text) ---
+# Right arrow or Ctrl+E accepts the whole suggestion.
+# Falls back to tab-completion candidates when history has no match.
+ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+[ -f "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ] && \
+  source "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
 
 # Run a command on launch: open --env AUTORUN=claude -na Ghostty --args --working-directory=DIR
 [[ -n "$AUTORUN" ]] && { cmd="$AUTORUN"; unset AUTORUN; eval "$cmd"; }
