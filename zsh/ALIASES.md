@@ -68,7 +68,7 @@ The planners differ because headless Cursor plan mode hangs, and headless agy ca
 
 ## fzf pickers, everyday use
 
-- `fcd` — fuzzy-jump into a `packages/*` or `applications/*` folder
+- `fcd` — fuzzy-pick any folder below the current one and cd into it
 - `ff` — fuzzy find a file by name, previews it, opens in `cursor` (your Ctrl+P)
 - `frg "<text>"` — fuzzy find text inside files (ripgrep), previews the match in `bat`, opens the pick in `cursor`
 - `fbr` — fuzzy-switch git branches

@@ -63,7 +63,7 @@ wc()  { git worktree add "../$1" -b "$1" "${2:-HEAD}" && cd "../$1"; }  # wc <na
 wcd() { cd "$(git worktree list | fzf --prompt='worktree> ' | awk '{print $1}')"; }
 
 # --- fzf pickers (frg, ff, fbr, fkill, dsh are scripts in ../bin) ---
-fcd() { cd "$(fd -t d -d 1 . packages applications 2>/dev/null | fzf)"; }
+fcd() { cd "$(fd -t d | fzf)"; }   # fzf-pick any folder below this one and cd into it
 
 # --- zsh: global + suffix aliases ---
 alias -g G='| grep -i'
