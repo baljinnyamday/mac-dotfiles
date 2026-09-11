@@ -8,7 +8,7 @@ Reference for everything in `zsh/aliases.zsh`, the command scripts in `bin/`, an
 
 - `cc` — alias for `claude`
 - `ccmsg` — drafts a commit message from your staged diff (`git diff --staged` piped in)
-- `ccf [pytest args]` — runs `uv run pytest` and has Claude fix the failures right in your checkout, then re-run the tests to confirm (does nothing if they already pass). Or pipe in output from anything else: `uv run mypy . 2>&1 | ccf`, `pnpm build 2>&1 | ccf` (keep `2>&1`, errors go to stderr). Headless with `--permission-mode auto`, so you only see Claude's summary at the end; review the changes with `lg`
+- `ccf [pytest args]` — runs `uv run pytest` and has Claude fix the failures right in your checkout, then re-run the tests to confirm (does nothing if they already pass). Or pipe in output from anything else: `uv run mypy . |& ccf`, `pnpm build |& ccf` (`|&` also pipes stderr, where most tools print their errors; plain `|` would leave `ccf` with nothing). Headless with `--permission-mode auto`, so you only see Claude's summary at the end; review the changes with `lg`
 - `ccpr` — reviews your branch's diff against `main`, terse bug-focused review
 - `ccx <file>` — `claude -p "explain @file concisely"`, quick one-liner explanation
 - `ccj "<prompt>"` — runs a prompt, returns just the raw text via `--output-format json | jq -r '.result'`, for piping into scripts

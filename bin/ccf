@@ -2,8 +2,8 @@
 # ccf [pytest args] -- Claude finds why something is failing and fixes it in your current checkout.
 #   ccf                        run `uv run pytest` and fix the failures (does nothing if they pass)
 #   ccf tests/test_api.py -x   args go to pytest
-#   uv run mypy . 2>&1 | ccf   fix whatever the piped output shows: type errors, a broken build...
-#   pnpm build 2>&1 | ccf      (keep 2>&1: most tools print errors to stderr)
+#   uv run mypy . |& ccf       fix whatever the piped output shows: type errors, a broken build...
+#   pnpm build |& ccf          (|& also pipes stderr, where most tools print their errors)
 # Headless, so you only see Claude's summary at the end. Review the changes with `lg` / `git diff`.
 set -euo pipefail
 
@@ -16,7 +16,7 @@ else
   out=$(cat)
   verify="If you can tell which command produced it, re-run that to confirm the fix."
 fi
-[[ -n "$out" ]] || { echo "ccf: nothing was piped in (missing 2>&1?)" >&2; exit 1; }
+[[ -n "$out" ]] || { echo "ccf: nothing was piped in (use |& instead of |?)" >&2; exit 1; }
 
 prompt="The output below shows a failure. Find the root cause and fix it with the smallest change.
 Fix the code, not the tests, unless a test is actually wrong.
