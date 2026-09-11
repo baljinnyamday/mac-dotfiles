@@ -34,17 +34,17 @@ ccx()    { claude -p "explain @$1 concisely"; }
 ccj()    { claude -p "$1" --output-format json | jq -r '.result'; }
 
 # --- claude code: opsx plan -> review -> apply pipeline ---
-ccplan()   { local m=sonnet; case $1 in -o) m=opus;shift;; -h) m=haiku;shift;; -s) shift;; esac; claude -p "/opsx:propose $*" --permission-mode acceptEdits --model "$m"; }
+ccplan()   { if [[ "$1" == -c ]]; then shift; cursor-agent -p --force "/opsx-propose $*"; return; fi; local m=sonnet; case $1 in -o) m=opus;shift;; -h) m=haiku;shift;; -s) shift;; esac; claude -p "/opsx:propose $*" --permission-mode acceptEdits --model "$m"; }
 ccreview() {
   local change; change=$(ls openspec/changes | fzf --prompt="review which proposal? ")
   [[ -n "$change" ]] && bat openspec/changes/"$change"/*.md
 }
-ccapply()  { local ch=$1; shift; local m=sonnet; case $1 in -o) m=opus;shift;; -h) m=haiku;shift;; -s) shift;; esac; claude -w "$ch" --tmux --model "$m" "/opsx:apply $ch"; }
+ccapply()  { local ch=$1; shift; if [[ "$1" == -c ]]; then shift; tmux new-window "cursor-agent -w $ch --force $(printf '%q' "/opsx-apply $ch")"; return; fi; local m=sonnet; case $1 in -o) m=opus;shift;; -h) m=haiku;shift;; -s) shift;; esac; claude -w "$ch" --tmux --model "$m" "/opsx:apply $ch"; }
 wcd()      { cd "$(git worktree list | fzf --prompt='worktree> ' | awk '{print $1}')"; }
 
 # --- claude code: small changes, no ceremony ---
-ccdo()  { local m=sonnet; case $1 in -o) m=opus;shift;; -h) m=haiku;shift;; -s) shift;; esac; claude -w "quick-$(date +%s)" --tmux --permission-mode auto --model "$m" "$*"; }
-ccdoh() { local m=sonnet; case $1 in -o) m=opus;shift;; -h) m=haiku;shift;; -s) shift;; esac; claude -p --permission-mode auto --permission-prompts none --model "$m" "$*"; }
+ccdo()  { if [[ "$1" == -c ]]; then shift; tmux new-window "cursor-agent -w quick-$(date +%s) --force $(printf '%q' "$*")"; return; fi; local m=sonnet; case $1 in -o) m=opus;shift;; -h) m=haiku;shift;; -s) shift;; esac; claude -w "quick-$(date +%s)" --tmux --permission-mode auto --model "$m" "$*"; }
+ccdoh() { if [[ "$1" == -c ]]; then shift; cursor-agent -p --force "$*"; return; fi; local m=sonnet; case $1 in -o) m=opus;shift;; -h) m=haiku;shift;; -s) shift;; esac; claude --bg --permission-mode auto --model "$m" "$*"; }
 
 # --- branch / worktree create + merge-back ---
 bc()   { git checkout -b "$1"; }
@@ -60,7 +60,7 @@ wrm()  {
 
 # --- fzf pickers ---
 fcd()   { cd "$(fd -t d -d 1 . packages applications 2>/dev/null | fzf)"; }
-frg()   { local f; f=$(rg --line-number --no-heading --smart-case "$1" | fzf -d: --preview 'bat --style=numbers --color=always --highlight-line {2} {1}' | cut -d: -f1); [[ -n "$f" ]] && cursor "$f"; }
+frg()   { local f; f=$(rg --line-number --no-heading --smart-case "$1" | fzf -d: --nth=3.. --preview 'bat --style=numbers --color=always --highlight-line {2} {1}' | cut -d: -f1); [[ -n "$f" ]] && cursor "$f"; }
 fbr()   { git checkout "$(git branch --all | grep -v HEAD | sed 's/^[* ]*//;s#remotes/origin/##' | sort -u | fzf)"; }
 fkill() { ps aux | sed 1d | fzf -m --header='select process(es) to kill' | awk '{print $2}' | xargs -r kill -9; }
 dsh()   { docker exec -it "$(docker ps --format '{{.Names}}' | fzf)" sh; }
