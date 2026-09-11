@@ -1,6 +1,8 @@
 # Aliases cheatsheet
 
-Reference for everything in `zsh/aliases.zsh` (and the couple of one-offs in `zsh/.zshrc`). Keep this in sync whenever `aliases.zsh` changes — see the note at the bottom.
+Reference for everything in `zsh/aliases.zsh`, the command scripts in `bin/`, and the couple of one-offs in `zsh/.zshrc`. Keep this in sync whenever they change — see the note at the bottom.
+
+**Where a new command goes:** one-line shortcut → alias in `aliases.zsh`. Needs to `cd` or `export` in your current shell → function in `aliases.zsh` (a script runs in its own process and can't). Anything longer → executable script in `bin/`, then `./install.sh` to link it into `~/.local/bin`. Scripts also work from bash, other scripts, tmux/cmux keybindings and agents.
 
 ## Claude Code: quick headless one-offs
 
@@ -33,7 +35,7 @@ Reference for everything in `zsh/aliases.zsh` (and the couple of one-offs in `zs
 - `bc <name>` — `git checkout -b <name>`, new branch and switch to it
 - `wc <name> [base]` — new worktree + branch in `../<name>`, and cds you into it; branches from `base` (e.g. `dev`, `origin/staging`), defaulting to the current branch
 - `wcd` — fzf-pick an existing worktree, cd into it
-- `ship` — pushes current branch (`-u`) and opens a PR with `gh pr create --fill`
+- `ship [gh args]` — pushes current branch (`-u`) and opens a PR with `gh pr create --fill`; extra args go to `gh`, e.g. `ship --base dev`
 - `wrm` — fzf-pick a worktree, removes it and deletes its local branch (run this after a PR merges)
 
 ## fzf pickers, everyday use
@@ -65,4 +67,4 @@ Reference for everything in `zsh/aliases.zsh` (and the couple of one-offs in `zs
 
 ---
 
-**Keeping this file honest:** whenever `zsh/aliases.zsh` changes, update the matching bullet here in the same commit — don't let this drift into being a stale snapshot of an old design.
+**Keeping this file honest:** whenever `zsh/aliases.zsh` or a command script in `bin/` changes, update the matching bullet here in the same commit — don't let this drift into being a stale snapshot of an old design.

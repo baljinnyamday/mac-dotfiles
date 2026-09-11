@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# dsh -- fuzzy-pick a running docker container and shell in: bash, then sh, then `docker debug`
+# for shell-less images.
+set -euo pipefail
+
+container=$(docker ps --format '{{.Names}}' | fzf) || exit 0
+docker exec -it "$container" bash 2>/dev/null ||
+  docker exec -it "$container" sh 2>/dev/null ||
+  exec docker debug "$container"

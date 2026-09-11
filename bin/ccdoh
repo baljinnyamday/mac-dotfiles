@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# ccdoh "task" [-o|-s|-h] [-c] -- run a task headless in the background on the current branch
+# (no worktree). Check on it with `claude agents` / `claude logs <id>` / `claude attach <id>`.
+#   -o/-s/-h  force opus/sonnet/haiku (default: the account's default model)
+#   -c        use cursor-agent -p instead of Claude (runs in the foreground)
+# Flags can go anywhere; everything else is joined into the task.
+set -euo pipefail
+
+model="" cursor=0 task=""
+for arg in "$@"; do
+  case "$arg" in
+    -o) model=opus ;;
+    -s) model=sonnet ;;
+    -h) model=haiku ;;
+    -c) cursor=1 ;;
+    *) task="${task:+$task }$arg" ;;
+  esac
+done
+[[ -n "$task" ]] || { echo 'usage: ccdoh "task" [-o|-s|-h] [-c]' >&2; exit 1; }
+
+if [[ "$cursor" == 1 ]]; then
+  exec cursor-agent -p --force "$task"
+fi
+exec claude --bg --permission-mode auto ${model:+--model "$model"} "$task"

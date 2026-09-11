@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# ship [gh pr create args...] -- push the current branch (setting its upstream) and open a PR.
+#   ship               PR against the repo's default branch
+#   ship --base dev    PR against dev
+set -euo pipefail
+
+git push -u origin HEAD
+exec gh pr create --fill "$@"

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# ccreview -- fzf-pick an OpenSpec proposal and read its markdown in bat. Doesn't call any agent.
+set -euo pipefail
+
+[[ -d openspec/changes ]] || { echo "ccreview: no openspec/changes in $PWD" >&2; exit 1; }
+change=$(ls openspec/changes | fzf --prompt='review which proposal? ') || exit 0
+exec bat openspec/changes/"$change"/*.md

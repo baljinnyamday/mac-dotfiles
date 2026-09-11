@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# ccplan "idea" [-o|-s|-h] [-c] -- write an OpenSpec proposal/design/tasks into openspec/changes/.
+#   -o/-s/-h  force opus/sonnet/haiku (default: the account's default model)
+#   -c        use cursor-agent (/opsx-propose) instead of Claude
+# Flags can go anywhere; everything else is joined into the idea.
+set -euo pipefail
+
+model="" cursor=0 idea=""
+for arg in "$@"; do
+  case "$arg" in
+    -o) model=opus ;;
+    -s) model=sonnet ;;
+    -h) model=haiku ;;
+    -c) cursor=1 ;;
+    *) idea="${idea:+$idea }$arg" ;;
+  esac
+done
+[[ -n "$idea" ]] || { echo 'usage: ccplan "idea" [-o|-s|-h] [-c]' >&2; exit 1; }
+
+if [[ "$cursor" == 1 ]]; then
+  exec cursor-agent -p --force "/opsx-propose $idea"
+fi
+exec claude -p "/opsx:propose $idea" --permission-mode acceptEdits ${model:+--model "$model"}

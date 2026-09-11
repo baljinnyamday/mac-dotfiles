@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# wrm -- fzf-pick a git worktree, remove it and delete its local branch. Run after the PR merges.
+set -euo pipefail
+
+line=$(git worktree list | fzf --prompt='remove which worktree? ') || exit 0
+wt_path=$(awk '{print $1}' <<< "$line")
+branch=$(awk -F'[][]' '{print $2}' <<< "$line")   # empty for a detached HEAD
+
+git worktree remove "$wt_path" --force
+if [[ -n "$branch" ]]; then
+  git branch -d "$branch"
+fi

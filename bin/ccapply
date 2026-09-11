@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# ccapply <change-name> [-o|-s|-h] [-c] -- implement an OpenSpec change in its own worktree + tmux pane.
+#   -o/-s/-h  force opus/sonnet/haiku (default: the account's default model)
+#   -c        use cursor-agent (/opsx-apply) in a new tmux window instead of Claude
+set -euo pipefail
+
+usage() { echo 'usage: ccapply <change-name> [-o|-s|-h] [-c]' >&2; exit 1; }
+[[ $# -ge 1 && "$1" != -* ]] || usage
+change="$1"; shift
+
+model="" cursor=0
+for arg in "$@"; do
+  case "$arg" in
+    -o) model=opus ;;
+    -s) model=sonnet ;;
+    -h) model=haiku ;;
+    -c) cursor=1 ;;
+    *) usage ;;
+  esac
+done
+
+if [[ "$cursor" == 1 ]]; then
+  # cursor-agent has no --tmux flag, so wrap it in a tmux window ourselves
+  printf -v cmd 'cursor-agent -w %q --force %q' "$change" "/opsx-apply $change"
+  exec tmux new-window "$cmd"
+fi
+exec claude -w "$change" --tmux ${model:+--model "$model"} "/opsx:apply $change"

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# ff -- fuzzy-find a file by name (bat preview), open it in cursor.
+set -euo pipefail
+
+file=$(fd --type f --hidden --exclude .git | fzf --preview 'bat --style=numbers --color=always {}') || exit 0
+exec cursor "$file"

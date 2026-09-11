@@ -39,9 +39,9 @@ link warp/settings.toml       .warp/settings.toml
 link starship/starship.toml   .config/starship.toml
 link tmux/.tmux.conf          .tmux.conf
 link nvim                     .config/nvim
-link bin/claude-in            .local/bin/claude-in
-link bin/link-agent-docs      .local/bin/link-agent-docs
-link bin/tmux-sessionizer     .local/bin/tmux-sessionizer
+for script in "$REPO"/bin/*; do
+  link "bin/${script##*/}" ".local/bin/${script##*/}"
+done
 
 if [ ! -f "$HOME/.gitconfig.local" ]; then
   printf '[user]\n\tname = Your Name\n\temail = you@example.com\n' > "$HOME/.gitconfig.local"

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# fkill -- fuzzy-pick listening port(s)/process(es) from lsof (tab to multi-select), kill -9 them.
+set -euo pipefail
+
+pids=$(
+  lsof -nP -iTCP -sTCP:LISTEN | sed 1d |
+    fzf -m --header='select port(s)/process(es) to kill' |
+    awk '{print $2}' | sort -u
+) || exit 0
+xargs kill -9 <<< "$pids"

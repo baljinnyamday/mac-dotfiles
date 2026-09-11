@@ -32,7 +32,7 @@ machine-specific env, such as a work package index or tokens, in
 | `tmux/` | `~/.tmux.conf` | no plugins, Catppuccin status bar on top, popups for lazygit/claude/sessions |
 | `lazygit/` | `~/Library/Application Support/lazygit/config.yml` | delta diffs, Cursor as editor, claude + gh custom commands |
 | `nvim/` | `~/.config/nvim` | |
-| `bin/` | `~/.local/bin/` | `claude-in <folder>` (new cmux tab, or a Ghostty window outside cmux), `link-agent-docs [dir]`, `tmux-sessionizer [dir]` |
+| `bin/` | `~/.local/bin/` | every file gets linked, so a new script only needs `./install.sh`. `claude-in <folder>` (new cmux tab, or a Ghostty window outside cmux), `link-agent-docs [dir]`, `tmux-sessionizer [dir]`, plus the longer commands listed in `zsh/ALIASES.md` (`cc*` pipeline, `ship`, `wrm`, fzf pickers) |
 | `Brewfile` | | refresh with `brew bundle dump --force --describe` |
 | `macos.sh` | | `defaults write` settings |
 

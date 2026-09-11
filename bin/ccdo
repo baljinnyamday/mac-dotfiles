@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# ccdo "task" [-o|-s|-h] [-c] -- implement a small task live in a throwaway quick-<timestamp>
+# worktree + tmux pane, no proposal doc.
+#   -o/-s/-h  force opus/sonnet/haiku (default: the account's default model)
+#   -c        use cursor-agent in a new tmux window instead of Claude
+# Flags can go anywhere; everything else is joined into the task.
+set -euo pipefail
+
+model="" cursor=0 task=""
+for arg in "$@"; do
+  case "$arg" in
+    -o) model=opus ;;
+    -s) model=sonnet ;;
+    -h) model=haiku ;;
+    -c) cursor=1 ;;
+    *) task="${task:+$task }$arg" ;;
+  esac
+done
+[[ -n "$task" ]] || { echo 'usage: ccdo "task" [-o|-s|-h] [-c]' >&2; exit 1; }
+
+name="quick-$(date +%s)"
+if [[ "$cursor" == 1 ]]; then
+  # cursor-agent has no --tmux flag, so wrap it in a tmux window ourselves
+  printf -v cmd 'cursor-agent -w %q --force %q' "$name" "$task"
+  exec tmux new-window "$cmd"
+fi
+exec claude -w "$name" --tmux --permission-mode auto ${model:+--model "$model"} "$task"
