@@ -64,3 +64,7 @@ source "$HOME/mac-dotfiles/zsh/aliases.zsh"
 [ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
 
 ccw() { CLAUDE_CONFIG_DIR="$HOME/.ccw" claude --model claude-fable-5-1 "$@"; }
+
+
+# Added by Antigravity CLI installer
+export PATH="/Users/baljinnyam.dayan/.local/bin:$PATH"

@@ -42,6 +42,16 @@ ccreview() {
 ccapply()  { local ch=$1; shift; if [[ "$1" == -c ]]; then shift; tmux new-window "cursor-agent -w $ch --force $(printf '%q' "/opsx-apply $ch")"; return; fi; local -a mf=(); case $1 in -o) mf=(--model opus);shift;; -h) mf=(--model haiku);shift;; -s) mf=(--model sonnet);shift;; esac; claude -w "$ch" --tmux "${mf[@]}" "/opsx:apply $ch"; }
 wcd()      { cd "$(git worktree list | fzf --prompt='worktree> ' | awk '{print $1}')"; }
 
+# --- claude code: switch which account/config-dir all cc* aliases use (this shell only) ---
+ccas() {
+  local -a dirs=(~/.claude ~/.ccw ~/.claude-*(N))
+  local sel; sel=$(printf '%s\n' "${dirs[@]}" | fzf --print-query --prompt='claude account> ' | tail -1)
+  [[ -z "$sel" ]] && return
+  [[ "$sel" != /* ]] && sel="$HOME/.claude-$sel"
+  if [[ "$sel" == "$HOME/.claude" ]]; then unset CLAUDE_CONFIG_DIR; else export CLAUDE_CONFIG_DIR="$sel"; fi
+  echo "claude account: ${CLAUDE_CONFIG_DIR:-default}"
+}
+
 # --- claude code: small changes, no ceremony ---
 ccdo()  { if [[ "$1" == -c ]]; then shift; tmux new-window "cursor-agent -w quick-$(date +%s) --force $(printf '%q' "$*")"; return; fi; local -a mf=(); case $1 in -o) mf=(--model opus);shift;; -h) mf=(--model haiku);shift;; -s) mf=(--model sonnet);shift;; esac; claude -w "quick-$(date +%s)" --tmux --permission-mode auto "${mf[@]}" "$*"; }
 ccdoh() { if [[ "$1" == -c ]]; then shift; cursor-agent -p --force "$*"; return; fi; local -a mf=(); case $1 in -o) mf=(--model opus);shift;; -h) mf=(--model haiku);shift;; -s) mf=(--model sonnet);shift;; esac; claude --bg --permission-mode auto "${mf[@]}" "$*"; }
