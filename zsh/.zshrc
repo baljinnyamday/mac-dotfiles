@@ -42,23 +42,25 @@ export VISUAL="$EDITOR"
 [ -S "$HOME/.docker/run/docker.sock" ] && export DOCKER_HOST="unix://$HOME/.docker/run/docker.sock"
 
 # --- Aliases ---
-alias ls="eza --icons"
 alias ll="eza -l --icons"
 alias la="eza -la --icons"
 alias lt="eza -la --icons --sort=age"
 alias tree="eza --tree --icons"
-alias cat="bat"
-alias cd="z"
+alias bta="bat"
 alias lg="lazygit"
 alias gs="git status"
 alias gp="git push"
 alias python="python3"
 alias caff="caffeinate -i"
+alias cc="claude"
 alias zconfig="cursor ~/.zshrc"
 alias reload="source ~/.zshrc"
+source "$HOME/mac-dotfiles/zsh/aliases.zsh"
 
 # Run a command on launch: open --env AUTORUN=claude -na Ghostty --args --working-directory=DIR
 [[ -n "$AUTORUN" ]] && { cmd="$AUTORUN"; unset AUTORUN; eval "$cmd"; }
 
 # --- Machine-specific overrides (not tracked) ---
 [ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
+
+ccw() { CLAUDE_CONFIG_DIR="$HOME/.ccw" claude --model claude-fable-5-1 "$@"; }
