@@ -38,10 +38,8 @@ alias ts='sessionizer'                           # fzf-pick a project, jump to i
 alias ta='tmux attach 2>/dev/null || tmux new -s main'
 alias tl='tmux ls'
 
-# --- claude code (headless / -p) ---
+# --- claude code (headless / -p; ccf is a script in ../bin) ---
 ccmsg()  { git diff --staged | claude -p "write a concise conventional-commit message for this diff, one line under 72 chars, no body unless truly needed"; }
-ccfix()  { uv run pytest "$@" 2>&1 | claude -p "explain why this test is failing and suggest a fix"; }
-cclint() { uv run mypy . 2>&1 | claude -p "explain these mypy errors and the smallest fix for each"; }
 ccpr()   { git diff main...HEAD | claude -p "review this diff for bugs; be terse"; }
 ccx()    { claude -p "explain @$1 concisely"; }
 ccj()    { claude -p "$1" --output-format json | jq -r '.result'; }

@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# ccf [pytest args] -- Claude finds why something is failing and fixes it in your current checkout.
+#   ccf                        run `uv run pytest` and fix the failures (does nothing if they pass)
+#   ccf tests/test_api.py -x   args go to pytest
+#   uv run mypy . 2>&1 | ccf   fix whatever the piped output shows: type errors, a broken build...
+#   pnpm build 2>&1 | ccf      (keep 2>&1: most tools print errors to stderr)
+# Headless, so you only see Claude's summary at the end. Review the changes with `lg` / `git diff`.
+set -euo pipefail
+
+if [[ -t 0 ]]; then
+  cmd="uv run pytest${*:+ $*}"
+  echo "ccf: running $cmd" >&2
+  out=$(uv run pytest "$@" 2>&1) && { echo "ccf: tests pass, nothing to fix" >&2; exit 0; }
+  verify="Re-run \`$cmd\` to confirm the fix."
+else
+  out=$(cat)
+  verify="If you can tell which command produced it, re-run that to confirm the fix."
+fi
+[[ -n "$out" ]] || { echo "ccf: nothing was piped in (missing 2>&1?)" >&2; exit 1; }
+
+prompt="The output below shows a failure. Find the root cause and fix it with the smallest change.
+Fix the code, not the tests, unless a test is actually wrong.
+If it isn't a code problem (a missing tool, a mistyped command), say so and change nothing.
+$verify
+End with a short summary of what you changed."
+
+echo "ccf: Claude is fixing it..." >&2
+exec claude -p --permission-mode auto "$prompt" <<<"$out"
