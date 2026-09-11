@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ccdo "task" [-o|-s|-h] [-c|-a] -- implement a small task live in a throwaway quick-<timestamp>
 # worktree, no proposal doc: a new cmux workspace inside cmux, a tmux pane elsewhere.
+# Outside a git repo there's no worktree, so the agent works in the current folder in that new tab.
 #   -o/-s/-h  force opus/sonnet/haiku (default: the account's default model)
 #   -c        use cursor-agent instead of Claude
 #   -a        use agy on the newest Gemini Flash instead of Claude
@@ -21,24 +22,35 @@ done
 [[ -n "$task" ]] || { echo 'usage: ccdo "task" [-o|-s|-h] [-c|-a]' >&2; exit 1; }
 
 name="quick-$(date +%s)"
+in_repo=1 wt_flag=""
+if git rev-parse --git-dir >/dev/null 2>&1; then
+  printf -v wt_flag -- '-w %q ' "$name"
+else
+  in_repo=0
+  echo "ccdo: not a git repo, so no worktree: the agent works right in $PWD" >&2
+fi
+
 case "$agent" in
-  claude) printf -v cmd 'claude -w %q --permission-mode auto %s%q' "$name" "${model:+--model $model }" "$task" ;;
-  cursor) printf -v cmd 'cursor-agent -w %q --force %q' "$name" "$task" ;;
+  claude) printf -v cmd 'claude %s--permission-mode auto %s%q' "$wt_flag" "${model:+--model $model }" "$task" ;;
+  cursor) printf -v cmd 'cursor-agent %s--force %q' "$wt_flag" "$task" ;;
   agy)
-    # agy has no worktree flag, so make the kind `claude -w` makes (but branched from your HEAD)
-    common=$(git rev-parse --path-format=absolute --git-common-dir)
-    wt="$(dirname "$common")/.claude/worktrees/$name"
-    git worktree add -q -b "worktree-$name" "$wt" HEAD
+    dir=$PWD
+    if [[ "$in_repo" == 1 ]]; then
+      # agy has no worktree flag, so make the kind `claude -w` makes (but branched from your HEAD)
+      common=$(git rev-parse --path-format=absolute --git-common-dir)
+      dir="$(dirname "$common")/.claude/worktrees/$name"
+      git worktree add -q -b "worktree-$name" "$dir" HEAD
+    fi
     flash=$(agy models | grep -oE '^gemini-[0-9.]+-flash-high' | sort -V | tail -1) || true
-    printf -v cmd 'cd %q && agy --dangerously-skip-permissions %s-i %q' "$wt" "${flash:+--model $flash }" "$task"
+    printf -v cmd 'cd %q && agy --dangerously-skip-permissions %s-i %q' "$dir" "${flash:+--model $flash }" "$task"
     ;;
 esac
 
 if [[ -n "${CMUX_WORKSPACE_ID:-}" ]] && command -v cmux >/dev/null; then
   # own sidebar workspace: cmux notifications, agent status and session restore work per agent
   exec cmux new-workspace --name "$name" --cwd "$PWD" --focus true --command "$cmd"
-elif [[ "$agent" != claude ]]; then
-  # cursor-agent and agy have no --tmux flag, so wrap them in a tmux window ourselves (run from inside tmux)
+elif [[ "$agent" != claude || "$in_repo" == 0 ]]; then
+  # claude --tmux only works with its own worktree, so everything else gets a tmux window from us (run from inside tmux)
   exec tmux new-window "$cmd"
 fi
 exec claude -w "$name" --tmux --permission-mode auto ${model:+--model "$model"} "$task"

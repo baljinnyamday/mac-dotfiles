@@ -23,11 +23,15 @@ for arg in "$@"; do
   esac
 done
 
+plans="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plans"
 # worktrees go in the main checkout, even when this runs from inside another worktree
-common=$(git rev-parse --path-format=absolute --git-common-dir)
+if ! common=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
+  echo "cca: not in a git repo, so there's nowhere to make a worktree. cd into the repo and run cca there (plans stay in $plans)" >&2
+  [[ -t 0 ]] || cat > /dev/null  # let a piped ccp finish, so it still saves its plan
+  exit 1
+fi
 root=$(dirname "$common")
 
-plans="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plans"
 if [[ -z "$file" && -t 0 ]]; then
   pick=$(cd "$plans" && ls -t -- *.md | fzf --prompt='build which plan? ' --preview 'bat --color=always --style=plain {}') || exit 0
   file="$plans/$pick"

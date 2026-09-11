@@ -62,6 +62,8 @@ plans="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plans"
 file="$plans/${slug:-plan}.md"
 [[ ! -e "$file" ]] || file="$plans/${slug:-plan}-$(date +%s).md"
 
+# save before printing, so the plan survives even if whatever reads stdout has already quit
 mkdir -p "$plans"
-printf '%s\n' "$plan" | tee "$file"
+printf '%s\n' "$plan" > "$file"
+printf '%s\n' "$plan"
 echo "ccp: saved $file" >&2

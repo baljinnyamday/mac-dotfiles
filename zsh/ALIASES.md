@@ -51,7 +51,7 @@ The planners differ because headless Cursor plan mode hangs, and headless agy ca
 
 ## Claude Code: small changes, no ceremony
 
-- `ccdo "task" [-o|-s|-h] [-c|-a]` — same idea as `ccapply` but skips the proposal doc: auto-names a throwaway `quick-<timestamp>` worktree, opens it in its own cmux workspace (tmux pane outside cmux), implements it live. `-a` runs `agy` on the newest Gemini Flash in a worktree the script makes under `.claude/worktrees/`, branched from your HEAD
+- `ccdo "task" [-o|-s|-h] [-c|-a]` — same idea as `ccapply` but skips the proposal doc: auto-names a throwaway `quick-<timestamp>` worktree, opens it in its own cmux workspace (tmux pane outside cmux), implements it live. `-a` runs `agy` on the newest Gemini Flash in a worktree the script makes under `.claude/worktrees/`, branched from your HEAD. Outside a git repo there's no worktree: it still opens the new tab, and the agent works right in the current folder
 - `ccdoh "task" [-o|-s|-h] [-c|-a]` — headless + backgrounded (`claude --bg`), returns your terminal immediately. Before editing, Claude moves it into its own worktree under `.claude/worktrees/` (branched from `origin`'s default branch, not your current branch), which Claude's periodic sweep removes after `cleanupPeriodDays` if it holds no uncommitted or unpushed work. `-c` (cursor-agent) runs right in your current checkout instead. `-a` (agy on the newest Gemini Flash) also runs in the foreground, but in a new `quick-<timestamp>` worktree branched from your HEAD, since agy skips every permission prompt. Check on it with `claude logs <id>` / `claude attach <id>` / `claude agents`, or just review with `lg` once it's done
 
 ## Claude Code: account switching
