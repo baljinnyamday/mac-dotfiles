@@ -1,4 +1,4 @@
-# ~/.zshrc -- symlinked from ~/repos/mac-dotfiles/zsh/.zshrc
+# ~/.zshrc -- symlinked from ~/mac-dotfiles/zsh/.zshrc
 # Machine-specific or secret settings (work package index, tokens) go in
 # ~/.zshrc.local, which is sourced at the end and never tracked.
 
@@ -78,7 +78,7 @@ alias caff="caffeinate -i"
 alias cc="claude"
 alias zconfig="cursor ~/.zshrc"
 alias reload="source ~/.zshrc"
-source "$HOME/mac-dotfiles/zsh/aliases.zsh"
+source "${${(%):-%x}:A:h}/aliases.zsh"   # next to the real .zshrc, wherever the repo is cloned
 
 # Run a command on launch: open --env AUTORUN=claude -na Ghostty --args --working-directory=DIR
 [[ -n "$AUTORUN" ]] && { cmd="$AUTORUN"; unset AUTORUN; eval "$cmd"; }

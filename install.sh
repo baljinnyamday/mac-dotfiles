@@ -2,9 +2,19 @@
 # Symlinks every config in this repo into $HOME. Safe to re-run.
 #   ./install.sh          symlink configs
 #   ./install.sh --brew   also install everything in the Brewfile
+#   ./install.sh --tools  also install CLIs that ship their own installer (claude, uv, cursor-agent)
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+BREW=0 TOOLS=0
+for arg in "$@"; do
+  case "$arg" in
+    --brew)  BREW=1 ;;
+    --tools) TOOLS=1 ;;
+    *) echo "usage: ./install.sh [--brew] [--tools]" >&2; exit 1 ;;
+  esac
+done
 
 link() {
   local src="$REPO/$1" dest="$HOME/$2"
@@ -38,8 +48,25 @@ if [ ! -f "$HOME/.gitconfig.local" ]; then
   echo "created   ~/.gitconfig.local -- put your git identity there"
 fi
 
-if [ "${1:-}" = "--brew" ]; then
+if [ "$BREW" = 1 ]; then
   brew bundle --file="$REPO/Brewfile"
+fi
+
+# Not in the Brewfile because they self-update through their own installers.
+# All of them land in ~/.local/bin, which .zshrc already puts on PATH.
+tool() {
+  if command -v "$1" >/dev/null || [ -x "$HOME/.local/bin/$1" ]; then
+    echo "have      $1"
+  else
+    echo "installing $1"
+    bash -c "$2"
+  fi
+}
+
+if [ "$TOOLS" = 1 ]; then
+  tool claude       'curl -fsSL https://claude.ai/install.sh | bash'
+  tool uv           'curl -LsSf https://astral.sh/uv/install.sh | env UV_NO_MODIFY_PATH=1 sh'
+  tool cursor-agent 'curl -fsS https://cursor.com/install | bash'
 fi
 
 echo "done."

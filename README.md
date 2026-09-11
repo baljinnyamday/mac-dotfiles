@@ -8,10 +8,10 @@ edits this repo. Commit and push when you're done.
 ```sh
 xcode-select --install
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-git clone git@github.com:baljinnyamday/mac-dotfiles.git ~/repos/mac-dotfiles
-cd ~/repos/mac-dotfiles
-./install.sh --brew   # symlink configs, then brew bundle
-./macos.sh            # key repeat, dock, finder defaults
+git clone git@github.com:baljinnyamday/mac-dotfiles.git ~/mac-dotfiles
+cd ~/mac-dotfiles
+./install.sh --brew --tools   # symlink configs, brew bundle, then claude / uv / cursor-agent
+./macos.sh                    # key repeat, dock, finder defaults
 ```
 
 Then fill in `~/.gitconfig.local` (name, email, signing key) and put any
@@ -22,11 +22,11 @@ machine-specific env, such as a work package index or tokens, in
 
 | Path | Linked to | Notes |
 |---|---|---|
-| `zsh/` | `~/.zshrc`, `~/.zshenv` | starship, zoxide, fzf, direnv, nvm, pnpm, bun, uv |
+| `zsh/` | `~/.zshrc`, `~/.zshenv` | starship, zoxide, fzf, direnv, nvm, pnpm, bun, uv. Starts in ~0.1s: nvm loads on first use, completions rescan hourly (`rm ~/.zcompdump && reload` to force) |
 | `git/` | `~/.gitconfig`, `~/.config/git/ignore` | delta pager, zdiff3, identity from `~/.gitconfig.local` |
 | `aerospace/` | `~/.aerospace.toml` | i3-style tiling, see keys below |
 | `ghostty/` | `~/.config/ghostty/config` | Catppuccin Mocha, JetBrainsMono Nerd Font, drop-down quick terminal. cmux reads it too |
-| `cmux/` | `~/.config/cmux/cmux.json` | Warp-style vertical tabs on top of Ghostty, ctrl+tab cycles the sidebar |
+| `cmux/` | `~/.config/cmux/cmux.json` | Warp-style vertical tabs on top of Ghostty, ctrl+tab cycles the sidebar, cmd+hjkl moves between splits |
 | `warp/` | `~/.warp/settings.toml` | vertical tabs, JetBrainsMono Nerd Font, Warp hot-reloads edits |
 | `starship/` | `~/.config/starship.toml` | gruvbox powerline prompt |
 | `tmux/` | `~/.tmux.conf` | no plugins, Catppuccin status bar on top, popups for lazygit/claude/sessions |
@@ -52,7 +52,7 @@ machine-specific env, such as a work package index or tokens, in
 | alt-shift-1 … 0 | move window to workspace |
 | alt-tab | previous workspace |
 | alt-shift-tab | move workspace to next monitor |
-| alt-n / c / s / t / o / w / e | Notion / Claude / Slack / Teams / Outlook / Warp / Cursor workspace, launches the app |
+| alt-n / c / s / t / o / w / e | Notion / Claude / Slack / Teams / Outlook / cmux / Cursor workspace, launches the app |
 | alt-shift-n / c / s / t / o / w / e | move window to that app's workspace |
 | alt-b | open Chrome |
 | alt-f | fullscreen |
@@ -77,9 +77,13 @@ machine-specific env, such as a work package index or tokens, in
 | cmd-b | show / hide sidebar |
 | cmd-shift-r | rename workspace |
 | cmd-d / cmd-shift-d | split right / down |
+| cmd-h / j / k / l | move between splits (only when the workspace is split, so cmd-h hide / cmd-k clear still work) |
+| cmd-shift-enter | zoom split |
+| cmd-shift-u | jump to the agent waiting for you |
+| ctrl-cmd-shift-d | diff viewer |
 | cmd-shift-w | close workspace |
 
-**Ghostty** (horizontal native tabs)
+**Ghostty** (horizontal native tabs; under AeroSpace each tab leaves an empty gap, [AeroSpace#68](https://github.com/nikitabobko/AeroSpace/issues/68), so prefer cmux or new windows)
 
 | Key | Action |
 |---|---|
