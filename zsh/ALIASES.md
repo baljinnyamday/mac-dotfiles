@@ -21,10 +21,12 @@ Reference for everything in `zsh/aliases.zsh`, the command scripts in `bin/`, an
 - `ccreview` — fzf-pick a proposal, opens its markdown in `bat` to actually read it before trusting it (doesn't call any agent)
 - `ccapply <change-name> [-o|-s|-h] [-c]` — implements that change in its own git worktree, opened where you can watch/steer: a new cmux workspace (sidebar tab) inside cmux, so each agent gets its own notifications and session restore; a tmux pane elsewhere. `-c` runs `cursor-agent` instead (outside cmux that needs you to be inside tmux, since it uses `tmux new-window`)
 
+**Worktrees from `ccapply` / `ccdo`** are Claude Code's own (`claude -w <name>`), not `wc`'s: they live in `.claude/worktrees/<name>/` (gitignored) on a branch `worktree-<name>`, branched from `origin`'s default branch (not your current branch; set `worktree.baseRef: "head"` in Claude settings to change that). When you exit the session, Claude removes a clean worktree and its branch (a named session asks first), and asks keep/remove if there are changes or new commits. Kept ones show up in `wcd` / `wrm` like any other worktree.
+
 ## Claude Code: small changes, no ceremony
 
 - `ccdo "task" [-o|-s|-h] [-c]` — same idea as `ccapply` but skips the proposal doc: auto-names a throwaway `quick-<timestamp>` worktree, opens it in its own cmux workspace (tmux pane outside cmux), implements it live
-- `ccdoh "task" [-o|-s|-h] [-c]` — headless + backgrounded (`claude --bg`): no worktree, works right on your current branch, returns your terminal immediately. Check on it with `claude logs <id>` / `claude attach <id>` / `claude agents`, or just review with `lg` once it's done
+- `ccdoh "task" [-o|-s|-h] [-c]` — headless + backgrounded (`claude --bg`), returns your terminal immediately. Before editing, Claude moves it into its own worktree under `.claude/worktrees/` (branched from `origin`'s default branch, not your current branch), which Claude's periodic sweep removes after `cleanupPeriodDays` if it holds no uncommitted or unpushed work. `-c` (cursor-agent) runs right in your current checkout instead. Check on it with `claude logs <id>` / `claude attach <id>` / `claude agents`, or just review with `lg` once it's done
 
 ## Claude Code: account switching
 
