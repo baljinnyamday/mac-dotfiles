@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # ccapply <change-name> [-o|-s|-h] [-c] -- implement an OpenSpec change in its own worktree, in a
-# window you can watch/steer: a new cmux workspace inside cmux, a tmux pane elsewhere.
+# window you can watch/steer: a new cmux workspace inside cmux, a tmux window inside tmux.
 #   -o/-s/-h  force opus/sonnet/haiku (default: the account's default model)
 #   -c        use cursor-agent (/opsx-apply) instead of Claude
 set -euo pipefail
+source "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/../lib/cc.sh"
 
 usage() { echo 'usage: ccapply <change-name> [-o|-s|-h] [-c]' >&2; exit 1; }
 [[ $# -ge 1 && "$1" != -* ]] || usage
@@ -26,11 +27,9 @@ else
   printf -v cmd 'claude -w %q %s%q' "$change" "${model:+--model $model }" "/opsx:apply $change"
 fi
 
-if [[ -n "${CMUX_WORKSPACE_ID:-}" ]] && command -v cmux >/dev/null; then
-  # own sidebar workspace: cmux notifications, agent status and session restore work per agent
-  exec cmux new-workspace --name "$change" --cwd "$PWD" --focus true --command "$cmd"
-elif [[ "$cursor" == 1 ]]; then
-  # cursor-agent has no --tmux flag, so wrap it in a tmux window ourselves (run from inside tmux)
-  exec tmux new-window "$cmd"
+cc_open_tab "$change" "$PWD" "$cmd"
+# neither cmux nor tmux: Claude can open its worktree in a tmux session itself; cursor-agent runs in this terminal
+if [[ "$cursor" == 1 ]]; then
+  exec bash -c "$cmd" < /dev/tty
 fi
 exec claude -w "$change" --tmux ${model:+--model "$model"} "/opsx:apply $change"

@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # ccp "idea" [-o|-s|-h] [-c|-a] -- plan a change without editing anything. Saves the plan as markdown
 # in ~/.claude/plans/ (where normal plan mode keeps plans too), prints it, then prints where it went.
-# Build it straight away with `ccp "idea" | cca`.
+# Build it straight away with `ccp "idea" | cca`. Works in any folder, git or not.
 #   -o/-s/-h  force opus/sonnet/haiku (default: the account's default model)
 #   -c        plan with cursor-agent in read-only ask mode instead of Claude
 #   -a        plan with agy on the newest Gemini Flash instead of Claude
 # Flags can go anywhere; everything else is joined into the idea.
 set -euo pipefail
+source "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/../lib/cc.sh"
 
 model="" agent=claude idea=""
 for arg in "$@"; do
@@ -47,7 +48,7 @@ case "$agent" in
   agy)
     # plan mode keeps agy read-only, but headless agy needs every permission skipped just to read files.
     # It saves the plan as a file and often only links to it in the reply
-    flash=$(agy models | grep -oE '^gemini-[0-9.]+-flash-high' | sort -V | tail -1) || true
+    flash=$(cc_agy_flash)
     reply=$(agy --mode plan --dangerously-skip-permissions --print-timeout 30m ${flash:+--model "$flash"} -p "$prompt" < /dev/null)
     linked=$(grep -oE 'file://[^)]+\.md' <<<"$reply" | head -1) || true
     if [[ -f "${linked#file://}" ]]; then plan=$(<"${linked#file://}"); else plan=$reply; fi
@@ -55,15 +56,12 @@ case "$agent" in
 esac
 [[ -n "$plan" ]] || { echo "ccp: $agent returned an empty plan" >&2; exit 1; }
 
-# name the file after the plan's title, the same way cca names its worktree
-title=$(grep -m1 '^# ' <<<"$plan" | cut -c3-) || true
-slug=$(printf '%s' "${title:-$idea}" | LC_ALL=C tr '[:upper:]' '[:lower:]' | LC_ALL=C tr -cs 'a-z0-9' '-' | cut -c1-50 | sed 's/^-//; s/-$//')
-plans="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plans"
-file="$plans/${slug:-plan}.md"
-[[ ! -e "$file" ]] || file="$plans/${slug:-plan}-$(date +%s).md"
+slug=$(cc_plan_slug "$plan" "$idea")
+file="$CC_PLANS/$slug.md"
+[[ ! -e "$file" ]] || file="$CC_PLANS/$slug-$(date +%s).md"
 
 # save before printing, so the plan survives even if whatever reads stdout has already quit
-mkdir -p "$plans"
+mkdir -p "$CC_PLANS"
 printf '%s\n' "$plan" > "$file"
 printf '%s\n' "$plan"
 echo "ccp: saved $file" >&2

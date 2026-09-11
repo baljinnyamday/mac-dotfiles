@@ -8,6 +8,7 @@
 #             worktree branched from your HEAD, since agy skips every permission prompt)
 # Flags can go anywhere; everything else is joined into the task.
 set -euo pipefail
+source "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/../lib/cc.sh"
 
 model="" agent=claude task=""
 for arg in "$@"; do
@@ -25,11 +26,9 @@ done
 case "$agent" in
   cursor) exec cursor-agent -p --force "$task" ;;
   agy)
-    common=$(git rev-parse --path-format=absolute --git-common-dir)
-    wt="$(dirname "$common")/.claude/worktrees/quick-$(date +%s)"
-    git worktree add -q -b "worktree-${wt##*/}" "$wt" HEAD
+    wt=$(cc_worktree "quick-$(date +%s)")
     echo "ccdoh: agy is working in $wt" >&2
-    flash=$(agy models | grep -oE '^gemini-[0-9.]+-flash-high' | sort -V | tail -1) || true
+    flash=$(cc_agy_flash)
     cd "$wt"
     exec agy --dangerously-skip-permissions --print-timeout 30m ${flash:+--model "$flash"} -p "$task"
     ;;

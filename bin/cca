@@ -8,6 +8,7 @@
 #   -c        build with cursor-agent instead of Claude
 #   -a        build with agy on the newest Gemini Flash instead of Claude
 set -euo pipefail
+source "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/../lib/cc.sh"
 
 usage() { echo 'usage: cca [plan.md] [-o|-s|-h] [-c|-a]' >&2; exit 1; }
 model="" agent=claude file=""
@@ -23,31 +24,21 @@ for arg in "$@"; do
   esac
 done
 
-plans="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plans"
-# worktrees go in the main checkout, even when this runs from inside another worktree
-if ! common=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
-  echo "cca: not in a git repo, so there's nowhere to make a worktree. cd into the repo and run cca there (plans stay in $plans)" >&2
+if ! cc_repo_root >/dev/null; then
+  echo "cca: not in a git repo, so there's nowhere to make a worktree. cd into the repo and run cca there (plans stay in $CC_PLANS)" >&2
   [[ -t 0 ]] || cat > /dev/null  # let a piped ccp finish, so it still saves its plan
   exit 1
 fi
-root=$(dirname "$common")
 
 if [[ -z "$file" && -t 0 ]]; then
-  pick=$(cd "$plans" && ls -t -- *.md | fzf --prompt='build which plan? ' --preview 'bat --color=always --style=plain {}') || exit 0
-  file="$plans/$pick"
+  pick=$(cd "$CC_PLANS" && ls -t -- *.md | fzf --prompt='build which plan? ' --preview 'bat --color=always --style=plain {}') || exit 0
+  file="$CC_PLANS/$pick"
 fi
 if [[ -n "$file" ]]; then plan=$(<"$file"); else plan=$(cat); fi
 [[ -n "$plan" ]] || { echo "cca: the plan is empty" >&2; exit 1; }
 
-title=$(grep -m1 '^# ' <<<"$plan" | cut -c3-) || true
-slug=$(printf '%s' "$title" | LC_ALL=C tr '[:upper:]' '[:lower:]' | LC_ALL=C tr -cs 'a-z0-9' '-' | cut -c1-50 | sed 's/^-//; s/-$//')
-slug=${slug:-plan}
-if [[ -e "$root/.claude/worktrees/$slug" ]] || git show-ref --quiet "refs/heads/worktree-$slug"; then
-  slug="$slug-$(date +%s)"
-fi
-
-wt="$root/.claude/worktrees/$slug"
-git worktree add -q -b "worktree-$slug" "$wt" HEAD
+wt=$(cc_worktree "$(cc_plan_slug "$plan")")
+slug=${wt##*/}   # the worktree's name, including any timestamp cc_worktree added
 mkdir -p "$wt/plans"
 printf '%s\n' "$plan" > "$wt/plans/$slug.md"
 echo "cca: building in $wt (branch worktree-$slug)" >&2
@@ -57,17 +48,12 @@ case "$agent" in
   claude) printf -v cmd 'claude --permission-mode auto %s%q' "${model:+--model $model }" "$prompt" ;;
   cursor) printf -v cmd 'cursor-agent --force %q' "$prompt" ;;
   agy)
-    flash=$(agy models | grep -oE '^gemini-[0-9.]+-flash-high' | sort -V | tail -1) || true
+    flash=$(cc_agy_flash)
     printf -v cmd 'agy --dangerously-skip-permissions %s-i %q' "${flash:+--model $flash }" "$prompt"
     ;;
 esac
 
-if [[ -n "${CMUX_WORKSPACE_ID:-}" ]] && command -v cmux >/dev/null; then
-  # own sidebar workspace: cmux notifications, agent status and session restore work per agent
-  exec cmux new-workspace --name "$slug" --cwd "$wt" --focus true --command "$cmd"
-elif [[ -n "${TMUX:-}" ]]; then
-  exec tmux new-window -n "$slug" -c "$wt" "$cmd"
-fi
+cc_open_tab "$slug" "$wt" "$cmd"
+# no cmux or tmux: run it in this terminal. stdin may have been the piped plan, so give the agent the keyboard back
 cd "$wt"
-# stdin may have been the piped plan, so give the agent the keyboard back
 exec bash -c "$cmd" < /dev/tty

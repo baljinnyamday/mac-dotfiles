@@ -2,7 +2,7 @@
 
 Reference for everything in `zsh/aliases.zsh`, the command scripts in `bin/`, and the couple of one-offs in `zsh/.zshrc`. Keep this in sync whenever they change — see the note at the bottom.
 
-**Where a new command goes:** one-line shortcut → alias in `aliases.zsh`. Needs to `cd` or `export` in your current shell → function in `aliases.zsh` (a script runs in its own process and can't). Anything longer → executable script in `bin/`, then `./install.sh` to link it into `~/.local/bin`. Scripts also work from bash, other scripts, tmux/cmux keybindings and agents.
+**Where a new command goes:** one-line shortcut → alias in `aliases.zsh`. Needs to `cd` or `export` in your current shell → function in `aliases.zsh` (a script runs in its own process and can't). Anything longer → executable script in `bin/`, then `./install.sh` to link it into `~/.local/bin`. Scripts also work from bash, other scripts, tmux/cmux keybindings and agents. Code the `cc*` scripts share (worktree creation, opening a cmux/tmux tab, the agy model lookup, plan naming) lives in `lib/cc.sh`, outside `bin/` so it doesn't land on your PATH.
 
 ## Claude Code: quick headless one-offs
 
@@ -18,7 +18,7 @@ Reference for everything in `zsh/aliases.zsh`, the command scripts in `bin/`, an
 
 - `ccplan "idea" [-o|-s|-h] [-c]` — writes a proposal/design/tasks doc into `openspec/changes/`. No flag = your account's normal default model; `-o`/`-h`/`-s` forces opus/haiku/sonnet; `-c` uses `cursor-agent` (`/opsx-propose`) instead of Claude
 - `ccreview` — fzf-pick a proposal, opens its markdown in `bat` to actually read it before trusting it (doesn't call any agent)
-- `ccapply <change-name> [-o|-s|-h] [-c]` — implements that change in its own git worktree, opened where you can watch/steer: a new cmux workspace (sidebar tab) inside cmux, so each agent gets its own notifications and session restore; a tmux pane elsewhere. `-c` runs `cursor-agent` instead (outside cmux that needs you to be inside tmux, since it uses `tmux new-window`)
+- `ccapply <change-name> [-o|-s|-h] [-c]` — implements that change in its own git worktree, opened where you can watch/steer: a new cmux workspace (sidebar tab) inside cmux, so each agent gets its own notifications and session restore; a tmux window inside tmux, and otherwise Claude opens its own tmux session. `-c` runs `cursor-agent` instead (in the current terminal when you're in neither cmux nor tmux)
 
 **Worktrees from `ccapply` / `ccdo`** are Claude Code's own (`claude -w <name>`), not `wc`'s: they live in `.claude/worktrees/<name>/` (gitignored) on a branch `worktree-<name>`, branched from `origin`'s default branch (not your current branch; set `worktree.baseRef: "head"` in Claude settings to change that). When you exit the session, Claude removes a clean worktree and its branch (a named session asks first), and asks keep/remove if there are changes or new commits. Kept ones show up in `wcd` / `wrm` like any other worktree.
 
@@ -51,7 +51,7 @@ The planners differ because headless Cursor plan mode hangs, and headless agy ca
 
 ## Claude Code: small changes, no ceremony
 
-- `ccdo "task" [-o|-s|-h] [-c|-a]` — same idea as `ccapply` but skips the proposal doc: auto-names a throwaway `quick-<timestamp>` worktree, opens it in its own cmux workspace (tmux pane outside cmux), implements it live. `-a` runs `agy` on the newest Gemini Flash in a worktree the script makes under `.claude/worktrees/`, branched from your HEAD. Outside a git repo there's no worktree: it still opens the new tab, and the agent works right in the current folder
+- `ccdo "task" [-o|-s|-h] [-c|-a]` — same idea as `ccapply` but skips the proposal doc: auto-names a throwaway `quick-<timestamp>` worktree, opens it in its own cmux workspace (a tmux window inside tmux; in neither, Claude opens its own tmux session and cursor-agent/agy run in the current terminal), implements it live. `-a` runs `agy` on the newest Gemini Flash in a worktree the script makes under `.claude/worktrees/`, branched from your HEAD. Outside a git repo there's no worktree: it still opens the new tab, and the agent works right in the current folder
 - `ccdoh "task" [-o|-s|-h] [-c|-a]` — headless + backgrounded (`claude --bg`), returns your terminal immediately. Before editing, Claude moves it into its own worktree under `.claude/worktrees/` (branched from `origin`'s default branch, not your current branch), which Claude's periodic sweep removes after `cleanupPeriodDays` if it holds no uncommitted or unpushed work. `-c` (cursor-agent) runs right in your current checkout instead. `-a` (agy on the newest Gemini Flash) also runs in the foreground, but in a new `quick-<timestamp>` worktree branched from your HEAD, since agy skips every permission prompt. Check on it with `claude logs <id>` / `claude attach <id>` / `claude agents`, or just review with `lg` once it's done
 
 ## Claude Code: account switching

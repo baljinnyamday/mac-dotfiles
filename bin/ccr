@@ -8,6 +8,7 @@
 #   -c        Cursor's /review-bugbot instead of Claude
 #   -a        agy on the newest Gemini Flash instead of Claude
 set -euo pipefail
+source "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/../lib/cc.sh"
 
 usage() { echo 'usage: ccr [slug] [-o|-s|-h] [-c|-a]' >&2; exit 1; }
 model="" agent=claude slug=""
@@ -23,9 +24,7 @@ for arg in "$@"; do
   esac
 done
 
-common=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null) ||
-  { echo "ccr: not in a git repo; run it from the repo or one of its cca worktrees" >&2; exit 1; }
-root=$(dirname "$common")
+root=$(cc_repo_root) || { echo "ccr: not in a git repo; run it from the repo or one of its cca worktrees" >&2; exit 1; }
 top=$(git rev-parse --show-toplevel)
 if [[ -n "$slug" ]]; then
   wt="$root/.claude/worktrees/$slug"
@@ -52,7 +51,7 @@ case "$agent" in
 esac
 
 # agy has no review skill, so spell the review out; headless agy needs every permission skipped to run git
-flash=$(agy models | grep -oE '^gemini-[0-9.]+-flash-high' | sort -V | tail -1) || true
+flash=$(cc_agy_flash)
 exec agy --dangerously-skip-permissions --print-timeout 30m ${flash:+--model "$flash"} -p "Review $target. Don't edit any files.
 
 Report only real defects (bugs, security holes, regressions, unhandled failure paths), most severe first, each as:
