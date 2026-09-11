@@ -13,8 +13,10 @@ name="$1"; shift; dir="$name"
 [[ -d "$dir" ]] || { echo "no such folder: $name" >&2; exit 1 }
 
 if [[ -n "$CMUX_WORKSPACE_ID" ]] && command -v cmux >/dev/null; then
+  # plain `claude`, not ~/.local/bin/claude: the new shell resolves it to cmux's wrapper, which
+  # injects the hooks behind notifications, agent status and session restore
   cmux new-workspace --name "${dir:A:t}" --cwd "${dir:A}" --focus true \
-    --command "$HOME/.local/bin/claude ${(j: :)${(q)@}}"
+    --command "claude ${(j: :)${(q)@}}"
 else
   open -na Ghostty.app --args --working-directory="${dir:A}" -e "$HOME/.local/bin/claude" "$@"
 fi

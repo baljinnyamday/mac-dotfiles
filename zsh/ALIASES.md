@@ -19,11 +19,11 @@ Reference for everything in `zsh/aliases.zsh`, the command scripts in `bin/`, an
 
 - `ccplan "idea" [-o|-s|-h] [-c]` — writes a proposal/design/tasks doc into `openspec/changes/`. No flag = your account's normal default model; `-o`/`-h`/`-s` forces opus/haiku/sonnet; `-c` uses `cursor-agent` (`/opsx-propose`) instead of Claude
 - `ccreview` — fzf-pick a proposal, opens its markdown in `bat` to actually read it before trusting it (doesn't call any agent)
-- `ccapply <change-name> [-o|-s|-h] [-c]` — implements that change in its own git worktree + tmux pane so you can watch/steer; `-c` runs it via `cursor-agent` in a `tmux new-window` instead (cursor-agent has no built-in tmux flag, so it's wrapped manually)
+- `ccapply <change-name> [-o|-s|-h] [-c]` — implements that change in its own git worktree, opened where you can watch/steer: a new cmux workspace (sidebar tab) inside cmux, so each agent gets its own notifications and session restore; a tmux pane elsewhere. `-c` runs `cursor-agent` instead (outside cmux that needs you to be inside tmux, since it uses `tmux new-window`)
 
 ## Claude Code: small changes, no ceremony
 
-- `ccdo "task" [-o|-s|-h] [-c]` — same idea as `ccapply` but skips the proposal doc: auto-names a throwaway `quick-<timestamp>` worktree, opens its own tmux pane, implements it live
+- `ccdo "task" [-o|-s|-h] [-c]` — same idea as `ccapply` but skips the proposal doc: auto-names a throwaway `quick-<timestamp>` worktree, opens it in its own cmux workspace (tmux pane outside cmux), implements it live
 - `ccdoh "task" [-o|-s|-h] [-c]` — headless + backgrounded (`claude --bg`): no worktree, works right on your current branch, returns your terminal immediately. Check on it with `claude logs <id>` / `claude attach <id>` / `claude agents`, or just review with `lg` once it's done
 
 ## Claude Code: account switching
@@ -49,12 +49,15 @@ Reference for everything in `zsh/aliases.zsh`, the command scripts in `bin/`, an
 
 ## Terminals
 
+- `ts [dir]` — fzf-pick a folder (zoxide history + `~/coding/*`) and jump to it. Inside cmux: switches to the workspace already open in that folder, or creates one. Elsewhere: jumps to its tmux session, creating it if needed (same picker as `prefix f` inside tmux)
 - `ghost` — opens a plain Ghostty window in the current folder. cmux is the everyday terminal, Ghostty is the fallback when cmux feels laggy (ssh + tmux)
 - `cmux .` — opens the current folder as a new cmux sidebar tab (the `cmux` CLI ships with the app)
+- `claude-in <folder> [claude args]` — Claude in a new cmux workspace for that folder (new Ghostty window outside cmux)
 
-## tmux
+## tmux (SSH and the Ghostty fallback only)
 
-- `ts [dir]` — fzf-pick a folder (zoxide history + `~/coding/*`), jump to its tmux session, creating it if needed. Same picker as `prefix f` inside tmux
+Don't run a local tmux inside cmux: cmux sees the whole tmux as one terminal, so per-agent notifications, sidebar status and session restore stop working, and you get two sets of keys. cmux workspaces = tmux sessions, cmux splits = panes (keys in the README). Need a process to survive quitting cmux? `cmux local-tmux start <name>` / `attach <name>`. Remote box? `cmux ssh-tmux <host>`.
+
 - `ta` — attach to the last tmux session, or start one called `main`
 - `tl` — list tmux sessions
 

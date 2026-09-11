@@ -96,11 +96,11 @@ machine-specific env, such as a work package index or tokens, in
 | cmd-shift-enter | zoom split |
 | ctrl-\` (anywhere) | drop-down quick terminal |
 
-**tmux** (prefix is ctrl-b)
+**tmux** (prefix is ctrl-b). For SSH and the plain-Ghostty fallback; inside cmux use workspaces and splits instead, see `zsh/ALIASES.md`
 
 | Key | Action |
 |---|---|
-| prefix f | fzf session picker (`ts` outside tmux) |
+| prefix f | fzf session picker (`ts` outside cmux and tmux) |
 | prefix w / s | tree of windows / sessions with preview |
 | prefix g / C / t | popup lazygit / claude / scratch shell |
 | prefix \| / - | split right / down in current folder |

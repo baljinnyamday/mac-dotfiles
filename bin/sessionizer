@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# sessionizer [dir] -- fzf-pick a project folder and jump to it. Inside cmux: switch to the workspace
+# already open in that folder, or create one. Elsewhere: hands off to tmux-sessionizer.
+# Folders come from zoxide history plus everything in ~/coding. `ts` in zsh.
+set -euo pipefail
+
+if [[ -z "${CMUX_WORKSPACE_ID:-}" ]] || ! command -v cmux >/dev/null; then
+  exec tmux-sessionizer "$@"
+fi
+
+if [[ $# -ge 1 ]]; then
+  dir=$(cd "$1" && pwd)
+else
+  dir=$(
+    {
+      zoxide query --list --all 2>/dev/null || true
+      fd --type d --max-depth 1 . "$HOME/coding" 2>/dev/null || true
+    } | sed 's#/$##' | awk 'NF && !seen[$0]++' |
+      fzf --prompt='workspace> ' --reverse \
+        --preview 'eza -la --icons --color=always {}' --preview-window=right,45%
+  ) || exit 0
+fi
+[[ -z "$dir" ]] && exit 0
+
+export CMUX_QUIET=1   # silences the legacy-verb deprecation notice
+# match on folder, not title: agents rename their tab (e.g. "✳ Claude Code")
+existing=$(
+  cmux workspace list --json | jq -r --arg dir "$dir" --arg real "$(cd "$dir" && pwd -P)" \
+    'first(.workspaces[] | select(.current_directory == $dir or .current_directory == $real) | .ref) // empty'
+)
+if [[ -n "$existing" ]]; then
+  exec cmux select-workspace --workspace "$existing"
+fi
+exec cmux new-workspace --name "$(basename "$dir")" --cwd "$dir" --focus true

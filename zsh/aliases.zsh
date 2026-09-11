@@ -31,8 +31,10 @@ alias pr='pnpm run'
 # --- terminals: cmux is the main one, Ghostty is the lightweight fallback ---
 alias ghost='open -na Ghostty --args --working-directory="$PWD"'   # plain Ghostty window in this folder
 
-# --- tmux ---
-alias ts='tmux-sessionizer'                      # fzf-pick a project, jump to its session
+# --- project switching: cmux workspaces inside cmux, tmux sessions elsewhere ---
+alias ts='sessionizer'                           # fzf-pick a project, jump to its workspace/session
+
+# --- tmux: for SSH and the plain-Ghostty fallback. Inside cmux use workspaces/splits instead ---
 alias ta='tmux attach 2>/dev/null || tmux new -s main'
 alias tl='tmux ls'
 
