@@ -34,17 +34,17 @@ ccx()    { claude -p "explain @$1 concisely"; }
 ccj()    { claude -p "$1" --output-format json | jq -r '.result'; }
 
 # --- claude code: opsx plan -> review -> apply pipeline ---
-ccplan()   { if [[ "$1" == -c ]]; then shift; cursor-agent -p --force "/opsx-propose $*"; return; fi; local m=sonnet; case $1 in -o) m=opus;shift;; -h) m=haiku;shift;; -s) shift;; esac; claude -p "/opsx:propose $*" --permission-mode acceptEdits --model "$m"; }
+ccplan()   { if [[ "$1" == -c ]]; then shift; cursor-agent -p --force "/opsx-propose $*"; return; fi; local -a mf=(); case $1 in -o) mf=(--model opus);shift;; -h) mf=(--model haiku);shift;; -s) mf=(--model sonnet);shift;; esac; claude -p "/opsx:propose $*" --permission-mode acceptEdits "${mf[@]}"; }
 ccreview() {
   local change; change=$(ls openspec/changes | fzf --prompt="review which proposal? ")
   [[ -n "$change" ]] && bat openspec/changes/"$change"/*.md
 }
-ccapply()  { local ch=$1; shift; if [[ "$1" == -c ]]; then shift; tmux new-window "cursor-agent -w $ch --force $(printf '%q' "/opsx-apply $ch")"; return; fi; local m=sonnet; case $1 in -o) m=opus;shift;; -h) m=haiku;shift;; -s) shift;; esac; claude -w "$ch" --tmux --model "$m" "/opsx:apply $ch"; }
+ccapply()  { local ch=$1; shift; if [[ "$1" == -c ]]; then shift; tmux new-window "cursor-agent -w $ch --force $(printf '%q' "/opsx-apply $ch")"; return; fi; local -a mf=(); case $1 in -o) mf=(--model opus);shift;; -h) mf=(--model haiku);shift;; -s) mf=(--model sonnet);shift;; esac; claude -w "$ch" --tmux "${mf[@]}" "/opsx:apply $ch"; }
 wcd()      { cd "$(git worktree list | fzf --prompt='worktree> ' | awk '{print $1}')"; }
 
 # --- claude code: small changes, no ceremony ---
-ccdo()  { if [[ "$1" == -c ]]; then shift; tmux new-window "cursor-agent -w quick-$(date +%s) --force $(printf '%q' "$*")"; return; fi; local m=sonnet; case $1 in -o) m=opus;shift;; -h) m=haiku;shift;; -s) shift;; esac; claude -w "quick-$(date +%s)" --tmux --permission-mode auto --model "$m" "$*"; }
-ccdoh() { if [[ "$1" == -c ]]; then shift; cursor-agent -p --force "$*"; return; fi; local m=sonnet; case $1 in -o) m=opus;shift;; -h) m=haiku;shift;; -s) shift;; esac; claude --bg --permission-mode auto --model "$m" "$*"; }
+ccdo()  { if [[ "$1" == -c ]]; then shift; tmux new-window "cursor-agent -w quick-$(date +%s) --force $(printf '%q' "$*")"; return; fi; local -a mf=(); case $1 in -o) mf=(--model opus);shift;; -h) mf=(--model haiku);shift;; -s) mf=(--model sonnet);shift;; esac; claude -w "quick-$(date +%s)" --tmux --permission-mode auto "${mf[@]}" "$*"; }
+ccdoh() { if [[ "$1" == -c ]]; then shift; cursor-agent -p --force "$*"; return; fi; local -a mf=(); case $1 in -o) mf=(--model opus);shift;; -h) mf=(--model haiku);shift;; -s) mf=(--model sonnet);shift;; esac; claude --bg --permission-mode auto "${mf[@]}" "$*"; }
 
 # --- branch / worktree create + merge-back ---
 bc()   { git checkout -b "$1"; }
