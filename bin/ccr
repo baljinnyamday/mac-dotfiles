@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# ccr [slug] [-o|-s|-h] [-c|-a] -- review a cca worktree in a fresh headless session, so the agent that
+# built it never grades its own work. Reviews everything since the worktree branched off (commits,
+# uncommitted and untracked files) against its plans/*.md. Reviewers run on auto/yolo permissions
+# but are told not to edit anything.
+# No slug: the worktree you're in, otherwise fzf-pick one.
+#   -o/-s/-h  force opus/sonnet/haiku for Claude's /code-review (default: the account's default model)
+#   -c        Cursor's /review-bugbot instead of Claude
+#   -a        agy on the newest Gemini Flash instead of Claude
+set -euo pipefail
+
+usage() { echo 'usage: ccr [slug] [-o|-s|-h] [-c|-a]' >&2; exit 1; }
+model="" agent=claude slug=""
+for arg in "$@"; do
+  case "$arg" in
+    -o) model=opus ;;
+    -s) model=sonnet ;;
+    -h) model=haiku ;;
+    -c) agent=cursor ;;
+    -a) agent=agy ;;
+    -*) usage ;;
+    *) [[ -z "$slug" ]] || usage; slug="$arg" ;;
+  esac
+done
+
+common=$(git rev-parse --path-format=absolute --git-common-dir)
+root=$(dirname "$common")
+top=$(git rev-parse --show-toplevel)
+if [[ -n "$slug" ]]; then
+  wt="$root/.claude/worktrees/$slug"
+elif [[ "$top" == */.claude/worktrees/* ]]; then
+  wt="$top"
+else
+  wt=$(git worktree list --porcelain | sed -n 's/^worktree //p' | grep '/\.claude/worktrees/' | fzf --prompt='review which worktree? ') || exit 0
+fi
+cd "$wt"
+
+# the branch point, so commits the builder made anyway get reviewed too
+main_head=$(git -C "$root" rev-parse HEAD)
+base=$(git merge-base HEAD "$main_head")
+target="all changes since commit $base (commits, staged, unstaged and untracked files)"
+shopt -s nullglob
+plan_files=(plans/*.md)
+if (( ${#plan_files[@]} )); then
+  target+=". They should implement the plan in ${plan_files[0]}, which is the spec, not code to review"
+fi
+
+case "$agent" in
+  claude) exec claude -p --permission-mode auto ${model:+--model "$model"} "/code-review Review $target. Print the findings as plain text." < /dev/null ;;
+  cursor) exec cursor-agent -p --mode ask --trust "/review-bugbot Review $target." < /dev/null ;;
+esac
+
+# agy has no review skill, so spell the review out; headless agy needs every permission skipped to run git
+flash=$(agy models | grep -oE '^gemini-[0-9.]+-flash-high' | sort -V | tail -1) || true
+exec agy --dangerously-skip-permissions --print-timeout 30m ${flash:+--model "$flash"} -p "Review $target. Don't edit any files.
+
+Report only real defects (bugs, security holes, regressions, unhandled failure paths), most severe first, each as:
+[P0-P3] title — path:line
+Why it breaks, and the smallest fix.
+If nothing qualifies, reply: No findings." < /dev/null

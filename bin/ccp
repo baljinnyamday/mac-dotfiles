@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+# ccp "idea" [-o|-s|-h] [-c|-a] -- plan a change without editing anything. Saves the plan as markdown
+# in ~/.claude/plans/ (where normal plan mode keeps plans too), prints it, then prints where it went.
+# Build it straight away with `ccp "idea" | cca`.
+#   -o/-s/-h  force opus/sonnet/haiku (default: the account's default model)
+#   -c        plan with cursor-agent in read-only ask mode instead of Claude
+#   -a        plan with agy on the newest Gemini Flash instead of Claude
+# Flags can go anywhere; everything else is joined into the idea.
+set -euo pipefail
+
+model="" agent=claude idea=""
+for arg in "$@"; do
+  case "$arg" in
+    -o) model=opus ;;
+    -s) model=sonnet ;;
+    -h) model=haiku ;;
+    -c) agent=cursor ;;
+    -a) agent=agy ;;
+    *) idea="${idea:+$idea }$arg" ;;
+  esac
+done
+[[ -n "$idea" ]] || { echo 'usage: ccp "idea" [-o|-s|-h] [-c|-a]' >&2; exit 1; }
+
+prompt="Research this codebase and write an implementation plan for: $idea
+
+Don't change any files. A different agent will build this plan in a fresh git worktree with no other context, so cover the goal, which files to change and why, the steps in order, and how to verify the result. Start with a '# <short title>' heading. Output only the plan, as markdown."
+
+case "$agent" in
+  claude)
+    # headless Claude can't leave plan mode: it usually writes the plan to a randomly named file in
+    # ~/.claude/plans and replies with a summary, now and then it just replies with the plan.
+    # The event stream says which file it wrote, if any.
+    events=$(mktemp)
+    trap 'rm -f "$events"' EXIT
+    claude -p --permission-mode plan --output-format stream-json --verbose ${model:+--model "$model"} "$prompt" < /dev/null > "$events"
+    written=$(jq -r 'select(.type == "assistant") | .message.content[]? | select(.type? == "tool_use" and .name == "Write") | .input.file_path' "$events" | tail -1)
+    if [[ -f "$written" ]]; then
+      plan=$(<"$written")
+      rm "$written"  # saved again below, named after the plan's title
+    else
+      plan=$(jq -r 'select(.type == "result") | .result' "$events")
+    fi
+    ;;
+  cursor)
+    plan=$(cursor-agent -p --mode ask --trust "$prompt" < /dev/null)
+    ;;
+  agy)
+    # plan mode keeps agy read-only, but headless agy needs every permission skipped just to read files.
+    # It saves the plan as a file and often only links to it in the reply
+    flash=$(agy models | grep -oE '^gemini-[0-9.]+-flash-high' | sort -V | tail -1) || true
+    reply=$(agy --mode plan --dangerously-skip-permissions --print-timeout 30m ${flash:+--model "$flash"} -p "$prompt" < /dev/null)
+    linked=$(grep -oE 'file://[^)]+\.md' <<<"$reply" | head -1) || true
+    if [[ -f "${linked#file://}" ]]; then plan=$(<"${linked#file://}"); else plan=$reply; fi
+    ;;
+esac
+[[ -n "$plan" ]] || { echo "ccp: $agent returned an empty plan" >&2; exit 1; }
+
+# name the file after the plan's title, the same way cca names its worktree
+title=$(grep -m1 '^# ' <<<"$plan" | cut -c3-) || true
+slug=$(printf '%s' "${title:-$idea}" | LC_ALL=C tr '[:upper:]' '[:lower:]' | LC_ALL=C tr -cs 'a-z0-9' '-' | cut -c1-50 | sed 's/^-//; s/-$//')
+plans="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plans"
+file="$plans/${slug:-plan}.md"
+[[ ! -e "$file" ]] || file="$plans/${slug:-plan}-$(date +%s).md"
+
+mkdir -p "$plans"
+printf '%s\n' "$plan" | tee "$file"
+echo "ccp: saved $file" >&2

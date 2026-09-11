@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# cca [plan.md] [-o|-s|-h] [-c|-a] -- build a plan in its own worktree, in a window you can watch/steer:
+# a new cmux workspace inside cmux, a tmux window inside tmux, this terminal otherwise.
+# The plan comes from the file argument, from stdin (`ccp "idea" | cca`), or from an fzf pick of
+# ~/.claude/plans. The worktree is .claude/worktrees/<slug> on branch worktree-<slug>, branched from
+# your current HEAD, and plans/<slug>.md is its only new file. Review the result with `ccr`.
+#   -o/-s/-h  force opus/sonnet/haiku (default: the account's default model)
+#   -c        build with cursor-agent instead of Claude
+#   -a        build with agy on the newest Gemini Flash instead of Claude
+set -euo pipefail
+
+usage() { echo 'usage: cca [plan.md] [-o|-s|-h] [-c|-a]' >&2; exit 1; }
+model="" agent=claude file=""
+for arg in "$@"; do
+  case "$arg" in
+    -o) model=opus ;;
+    -s) model=sonnet ;;
+    -h) model=haiku ;;
+    -c) agent=cursor ;;
+    -a) agent=agy ;;
+    -*) usage ;;
+    *) [[ -z "$file" ]] || usage; file="$arg" ;;
+  esac
+done
+
+# worktrees go in the main checkout, even when this runs from inside another worktree
+common=$(git rev-parse --path-format=absolute --git-common-dir)
+root=$(dirname "$common")
+
+plans="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plans"
+if [[ -z "$file" && -t 0 ]]; then
+  pick=$(cd "$plans" && ls -t -- *.md | fzf --prompt='build which plan? ' --preview 'bat --color=always --style=plain {}') || exit 0
+  file="$plans/$pick"
+fi
+if [[ -n "$file" ]]; then plan=$(<"$file"); else plan=$(cat); fi
+[[ -n "$plan" ]] || { echo "cca: the plan is empty" >&2; exit 1; }
+
+title=$(grep -m1 '^# ' <<<"$plan" | cut -c3-) || true
+slug=$(printf '%s' "$title" | LC_ALL=C tr '[:upper:]' '[:lower:]' | LC_ALL=C tr -cs 'a-z0-9' '-' | cut -c1-50 | sed 's/^-//; s/-$//')
+slug=${slug:-plan}
+if [[ -e "$root/.claude/worktrees/$slug" ]] || git show-ref --quiet "refs/heads/worktree-$slug"; then
+  slug="$slug-$(date +%s)"
+fi
+
+wt="$root/.claude/worktrees/$slug"
+git worktree add -q -b "worktree-$slug" "$wt" HEAD
+mkdir -p "$wt/plans"
+printf '%s\n' "$plan" > "$wt/plans/$slug.md"
+echo "cca: building in $wt (branch worktree-$slug)" >&2
+
+prompt="Implement the plan in plans/$slug.md. Don't commit; leave your changes uncommitted for review."
+case "$agent" in
+  claude) printf -v cmd 'claude --permission-mode auto %s%q' "${model:+--model $model }" "$prompt" ;;
+  cursor) printf -v cmd 'cursor-agent --force %q' "$prompt" ;;
+  agy)
+    flash=$(agy models | grep -oE '^gemini-[0-9.]+-flash-high' | sort -V | tail -1) || true
+    printf -v cmd 'agy --dangerously-skip-permissions %s-i %q' "${flash:+--model $flash }" "$prompt"
+    ;;
+esac
+
+if [[ -n "${CMUX_WORKSPACE_ID:-}" ]] && command -v cmux >/dev/null; then
+  # own sidebar workspace: cmux notifications, agent status and session restore work per agent
+  exec cmux new-workspace --name "$slug" --cwd "$wt" --focus true --command "$cmd"
+elif [[ -n "${TMUX:-}" ]]; then
+  exec tmux new-window -n "$slug" -c "$wt" "$cmd"
+fi
+cd "$wt"
+# stdin may have been the piped plan, so give the agent the keyboard back
+exec bash -c "$cmd" < /dev/tty

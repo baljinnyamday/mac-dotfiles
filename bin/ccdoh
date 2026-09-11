@@ -1,25 +1,37 @@
 #!/usr/bin/env bash
-# ccdoh "task" [-o|-s|-h] [-c] -- run a task headless in the background. Claude moves the session
+# ccdoh "task" [-o|-s|-h] [-c|-a] -- run a task headless in the background. Claude moves the session
 # into its own worktree under .claude/worktrees/ before editing (branched from origin's default
 # branch). Check on it with `claude agents` / `claude logs <id>` / `claude attach <id>`.
 #   -o/-s/-h  force opus/sonnet/haiku (default: the account's default model)
 #   -c        use cursor-agent -p instead of Claude (foreground, edits your current checkout)
+#   -a        use agy -p on the newest Gemini Flash instead (foreground, in a new quick-<timestamp>
+#             worktree branched from your HEAD, since agy skips every permission prompt)
 # Flags can go anywhere; everything else is joined into the task.
 set -euo pipefail
 
-model="" cursor=0 task=""
+model="" agent=claude task=""
 for arg in "$@"; do
   case "$arg" in
     -o) model=opus ;;
     -s) model=sonnet ;;
     -h) model=haiku ;;
-    -c) cursor=1 ;;
+    -c) agent=cursor ;;
+    -a) agent=agy ;;
     *) task="${task:+$task }$arg" ;;
   esac
 done
-[[ -n "$task" ]] || { echo 'usage: ccdoh "task" [-o|-s|-h] [-c]' >&2; exit 1; }
+[[ -n "$task" ]] || { echo 'usage: ccdoh "task" [-o|-s|-h] [-c|-a]' >&2; exit 1; }
 
-if [[ "$cursor" == 1 ]]; then
-  exec cursor-agent -p --force "$task"
-fi
+case "$agent" in
+  cursor) exec cursor-agent -p --force "$task" ;;
+  agy)
+    common=$(git rev-parse --path-format=absolute --git-common-dir)
+    wt="$(dirname "$common")/.claude/worktrees/quick-$(date +%s)"
+    git worktree add -q -b "worktree-${wt##*/}" "$wt" HEAD
+    echo "ccdoh: agy is working in $wt" >&2
+    flash=$(agy models | grep -oE '^gemini-[0-9.]+-flash-high' | sort -V | tail -1) || true
+    cd "$wt"
+    exec agy --dangerously-skip-permissions --print-timeout 30m ${flash:+--model "$flash"} -p "$task"
+    ;;
+esac
 exec claude --bg --permission-mode auto ${model:+--model "$model"} "$task"

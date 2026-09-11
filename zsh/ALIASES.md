@@ -22,10 +22,37 @@ Reference for everything in `zsh/aliases.zsh`, the command scripts in `bin/`, an
 
 **Worktrees from `ccapply` / `ccdo`** are Claude Code's own (`claude -w <name>`), not `wc`'s: they live in `.claude/worktrees/<name>/` (gitignored) on a branch `worktree-<name>`, branched from `origin`'s default branch (not your current branch; set `worktree.baseRef: "head"` in Claude settings to change that). When you exit the session, Claude removes a clean worktree and its branch (a named session asks first), and asks keep/remove if there are changes or new commits. Kept ones show up in `wcd` / `wrm` like any other worktree.
 
+## Claude Code: plain-markdown pipeline (ccp → cca → ccr)
+
+The same plan → build → review loop without OpenSpec, for any repo. Plans are plain markdown, and the builder and the reviewer are always separate sessions. Flags on all three: no flag = Claude on your account's default model, `-o`/`-s`/`-h` force opus/sonnet/haiku, `-c` uses `cursor-agent`, `-a` uses `agy` on the newest Gemini Flash.
+
+- `ccp "idea" [-o|-s|-h] [-c|-a]` — plans without editing anything (Claude plan mode, Cursor ask mode, agy plan mode). Prints the plan and saves it to `~/.claude/plans/<slug>.md` (slug = the plan's `# title`), where normal plan mode keeps its plans too
+- `cca [plan.md] [-o|-s|-h] [-c|-a]` — builds a plan in a new worktree `.claude/worktrees/<slug>` on branch `worktree-<slug>`, branched from your current HEAD (uncommitted changes stay behind); `plans/<slug>.md` is its only new file. The plan comes from the file argument, from stdin (`ccp "idea" | cca -a`), or with neither from an fzf pick of `~/.claude/plans`, newest first. Opens in a new cmux workspace (a tmux window inside tmux, this terminal otherwise) on auto permissions (table below). The agent is told not to commit
+- `ccr [slug] [-o|-s|-h] [-c|-a]` — reviews a `cca` worktree in a fresh headless session, so the builder never grades its own work: Claude's `/code-review`, Cursor's `/review-bugbot` (`-c`), or agy with a review prompt (`-a`). Covers everything since the worktree branched off (commits, uncommitted and untracked files) and checks it against the plan. No slug: the worktree you're in, else an fzf pick. Reviewers are told not to edit, so fixing is up to you or another agent run
+
+Typical run:
+
+```sh
+ccp "add rate limiting"          # plan only, saved to ~/.claude/plans/<slug>.md
+ccp "add rate limiting" | cca    # plan, then build in a new worktree + cmux tab
+cca                              # fzf-pick a saved plan and build it
+ccr -c                           # from inside the worktree: fresh Cursor Bugbot review
+```
+
+Then commit and `ship` from the worktree, or `wrm -f` to throw it away.
+
+| | Claude (default) | Cursor (`-c`) | agy (`-a`) |
+|---|---|---|---|
+| `ccp` | plan mode (read-only) | ask mode (read-only) | plan mode + `--dangerously-skip-permissions` |
+| `cca` | `--permission-mode auto` | `--force` | `--dangerously-skip-permissions` |
+| `ccr` | `--permission-mode auto` | ask mode | `--dangerously-skip-permissions`, told not to edit |
+
+The planners differ because headless Cursor plan mode hangs, and headless agy can't even read files unless every permission is skipped.
+
 ## Claude Code: small changes, no ceremony
 
-- `ccdo "task" [-o|-s|-h] [-c]` — same idea as `ccapply` but skips the proposal doc: auto-names a throwaway `quick-<timestamp>` worktree, opens it in its own cmux workspace (tmux pane outside cmux), implements it live
-- `ccdoh "task" [-o|-s|-h] [-c]` — headless + backgrounded (`claude --bg`), returns your terminal immediately. Before editing, Claude moves it into its own worktree under `.claude/worktrees/` (branched from `origin`'s default branch, not your current branch), which Claude's periodic sweep removes after `cleanupPeriodDays` if it holds no uncommitted or unpushed work. `-c` (cursor-agent) runs right in your current checkout instead. Check on it with `claude logs <id>` / `claude attach <id>` / `claude agents`, or just review with `lg` once it's done
+- `ccdo "task" [-o|-s|-h] [-c|-a]` — same idea as `ccapply` but skips the proposal doc: auto-names a throwaway `quick-<timestamp>` worktree, opens it in its own cmux workspace (tmux pane outside cmux), implements it live. `-a` runs `agy` on the newest Gemini Flash in a worktree the script makes under `.claude/worktrees/`, branched from your HEAD
+- `ccdoh "task" [-o|-s|-h] [-c|-a]` — headless + backgrounded (`claude --bg`), returns your terminal immediately. Before editing, Claude moves it into its own worktree under `.claude/worktrees/` (branched from `origin`'s default branch, not your current branch), which Claude's periodic sweep removes after `cleanupPeriodDays` if it holds no uncommitted or unpushed work. `-c` (cursor-agent) runs right in your current checkout instead. `-a` (agy on the newest Gemini Flash) also runs in the foreground, but in a new `quick-<timestamp>` worktree branched from your HEAD, since agy skips every permission prompt. Check on it with `claude logs <id>` / `claude attach <id>` / `claude agents`, or just review with `lg` once it's done
 
 ## Claude Code: account switching
 
