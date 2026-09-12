@@ -9,6 +9,7 @@ Reference for everything in `zsh/aliases.zsh`, the command scripts in `bin/`, an
 - `cc` — alias for `claude`
 - `ccmsg` — drafts a commit message from your staged diff (`git diff --staged` piped in)
 - `ccf [pytest args]` — runs `uv run pytest` and has Claude fix the failures right in your checkout, then re-run the tests to confirm (does nothing if they already pass). Or pipe in output from anything else: `uv run mypy . |& ccf`, `pnpm build |& ccf` (`|&` also pipes stderr, where most tools print their errors; plain `|` would leave `ccf` with nothing). Headless with `--permission-mode auto`, so you only see Claude's summary at the end; review the changes with `lg`
+- `ccstandup [since]` — your commits since `since` (default yesterday; `"last friday"` on a Monday) from the repo you're in, or every repo under `~/coding` and `~/repos` when outside one, plus uncommitted work, turned into a plain-words standup: yesterday / today (guessed from what's uncommitted) / blockers. `ccstandup C` copies it for Slack
 - `ccpr` — reviews your branch's diff against `main`, terse bug-focused review
 - `ccx <file>` — `claude -p "explain @file concisely"`, quick one-liner explanation
 - `ccj "<prompt>"` — runs a prompt, returns just the raw text via `--output-format json | jq -r '.result'`, for piping into scripts
@@ -76,6 +77,9 @@ The planners differ because headless Cursor plan mode hangs, and headless agy ca
 - `frg "<text>"` — fuzzy find text inside files (ripgrep), previews the match in `bat`, opens the pick in `cursor`
 - `fbr` — fuzzy-switch git branches
 - `fkill [-f]` — fuzzy-pick listening port(s)/process(es) (from `lsof`), sends TERM so they shut down cleanly and names any still alive a second later; `-f` sends KILL for the stubborn ones
+- `extract <archive>...` — unpacks tar.gz/tgz, tar.bz2, tar.xz, tar, zip, jar, gz, bz2, xz into the current folder, no flags to remember
+- `qr [text]` — QR code in the terminal for the text, or the clipboard when there's none; scan it with your phone. `qr "WIFI:T:WPA;S:name;P:pass;;"` joins a wifi
+- `notify [msg]` — macOS banner + says it out loud, default "done": `pnpm build; notify`, or `pnpm build && notify built || notify failed`
 - `dsh` — fuzzy-pick a running docker container, shells in (`bash` → `sh` → `docker debug` fallback for shell-less images)
 
 ## Terminals

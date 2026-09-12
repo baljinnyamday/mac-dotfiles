@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# qr [text] -- show a QR code in the terminal: fastest way to get a URL or password onto your phone.
+# No text: uses whatever is on the clipboard.
+#   qr https://example.com
+#   qr "WIFI:T:WPA;S:MyNetwork;P:secret;;"     phones join the wifi when they scan it
+set -euo pipefail
+text=${*:-$(pbpaste)}
+[[ -n "$text" ]] || { echo 'usage: qr <text>  (or copy something first)' >&2; exit 1; }
+qrencode -t ansiutf8 -- "$text"

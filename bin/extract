@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# extract <archive>... -- unpack any archive without remembering the flags. Lands in the current folder.
+set -euo pipefail
+[[ $# -gt 0 ]] || { echo 'usage: extract <archive>...' >&2; exit 1; }
+for f in "$@"; do
+  [[ -f "$f" ]] || { echo "extract: no such file: $f" >&2; exit 1; }
+  case "$f" in
+    *.tar.gz|*.tgz)   tar xzf "$f" ;;
+    *.tar.bz2|*.tbz2) tar xjf "$f" ;;
+    *.tar.xz|*.txz)   tar xJf "$f" ;;
+    *.tar)            tar xf "$f" ;;
+    *.zip|*.jar)      unzip -q "$f" ;;
+    *.gz)             gunzip -k "$f" ;;
+    *.bz2)            bunzip2 -k "$f" ;;
+    *.xz)             unxz -k "$f" ;;
+    *.7z|*.rar)       echo "extract: $f needs 7zz (brew install 7zip)" >&2; exit 1 ;;
+    *)                echo "extract: don't know how to open $f" >&2; exit 1 ;;
+  esac
+  echo "extracted $f"
+done

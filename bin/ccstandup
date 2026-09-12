@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# ccstandup [since] -- what you did, in plain words, for the daily standup. Reads your commits since
+# `since` (default yesterday; "friday", "3 days ago", "last monday", 2026-09-10 all work) plus how
+# much uncommitted work is sitting around. Inside a repo: that repo. Elsewhere: every repo under
+# ~/coding and ~/repos.
+#   ccstandup                yesterday
+#   ccstandup "last friday"  monday morning
+#   ccstandup C              copy it for Slack
+set -euo pipefail
+
+since=${1:-yesterday}
+
+if root=$(git rev-parse --show-toplevel 2>/dev/null); then
+  repos=("$root")
+else
+  mapfile -t repos < <(fd -H -t d '^\.git$' ~/coding ~/repos -d 3 | sed 's|/\.git/$||')
+fi
+
+notes=""
+for repo in "${repos[@]}"; do
+  author=()
+  name=$(git -C "$repo" config user.name 2>/dev/null || true)
+  [[ -n "$name" ]] && author=(--author="$name")
+  log=$(git -C "$repo" log --since="$since" --no-merges "${author[@]}" --format='- %s' 2>/dev/null || true)
+  dirty=$(git -C "$repo" status --porcelain 2>/dev/null | grep -c . || true)
+  [[ -z "$log" && "$dirty" == 0 ]] && continue
+  notes+="## ${repo##*/}"$'\n'"${log:-(no commits)}"$'\n'
+  (( dirty > 0 )) && notes+="uncommitted changes: $dirty files"$'\n'
+  notes+=$'\n'
+done
+[[ -n "$notes" ]] || { echo "ccstandup: nothing since $since" >&2; exit 1; }
+
+prompt="Below are my git commits since $since, grouped by project, plus how much uncommitted work each has.
+Write my standup the way I'd say it out loud to teammates.
+Plain words a non-engineer could follow. Short sentences. Say what changed and why it matters, not file names.
+Three short parts: Yesterday, Today (guess from the uncommitted work, and say it's a guess), Blockers (skip if none).
+Under 120 words. No headers, no bold, no em dashes, no hype, no filler."
+
+echo "ccstandup: reading ${#repos[@]} repo(s) since $since..." >&2
+claude -p --tools "" --no-session-persistence --output-format text "$prompt" <<<"$notes"

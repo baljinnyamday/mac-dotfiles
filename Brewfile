@@ -88,6 +88,7 @@ brew "pnpm"
 brew "poppler"
 # Tools for and transforming and inspecting PDF files
 brew "qpdf"
+brew "qrencode"
 # Search tool like grep and The Silver Searcher
 brew "ripgrep"
 # CLI proxy to minimize LLM token consumption
