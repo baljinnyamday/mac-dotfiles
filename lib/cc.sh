@@ -42,9 +42,11 @@ cc_agy_flash() {
 cc_open_tab() {
   if [[ -n "${CMUX_WORKSPACE_ID:-}" ]] && command -v cmux >/dev/null; then
     # own sidebar workspace: cmux notifications, agent status and session restore work per agent
+    echo "${0##*/}: opened cmux workspace '$1'" >&2
     exec cmux new-workspace --name "$1" --cwd "$2" --focus true --command "$3"
   fi
   if [[ -n "${TMUX:-}" ]]; then
+    echo "${0##*/}: opened tmux window '$1'" >&2
     exec tmux new-window -n "$1" -c "$2" "$3"
   fi
   return 0

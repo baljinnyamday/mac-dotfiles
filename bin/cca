@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# cca [plan.md] [-o|-s|-h] [-c|-a] -- build a plan in its own worktree, in a window you can watch/steer:
+# cca [plan.md] [-o|-s|-h] [-c|-a] -- build a plan in a window you can watch/steer:
 # a new cmux workspace inside cmux, a tmux window inside tmux, this terminal otherwise.
 # The plan comes from the file argument, from stdin (`ccp "idea" | cca`), or from an fzf pick of
-# ~/.claude/plans. The worktree is .claude/worktrees/<slug> on branch worktree-<slug>, branched from
-# your current HEAD, and plans/<slug>.md is its only new file. Review the result with `ccr`.
+# ~/.claude/plans. Inside a git repo it builds in its own worktree, .claude/worktrees/<slug> on branch
+# worktree-<slug> from your current HEAD, with plans/<slug>.md as its only new file; review that with
+# `ccr`. Outside a git repo it builds in place, in the current folder, and there's nothing for ccr to review.
 #   -o/-s/-h  force opus/sonnet/haiku (default: the account's default model)
 #   -c        build with cursor-agent instead of Claude
 #   -a        build with agy on the newest Gemini Flash instead of Claude
@@ -24,26 +25,47 @@ for arg in "$@"; do
   esac
 done
 
-if ! cc_repo_root >/dev/null; then
-  echo "cca: not in a git repo, so there's nowhere to make a worktree. cd into the repo and run cca there (plans stay in $CC_PLANS)" >&2
-  [[ -t 0 ]] || cat > /dev/null  # let a piped ccp finish, so it still saves its plan
-  exit 1
-fi
-
 if [[ -z "$file" && -t 0 ]]; then
   pick=$(cd "$CC_PLANS" && ls -t -- *.md | fzf --prompt='build which plan? ' --preview 'bat --color=always --style=plain {}') || exit 0
   file="$CC_PLANS/$pick"
 fi
-if [[ -n "$file" ]]; then plan=$(<"$file"); else plan=$(cat); fi
+if [[ -n "$file" ]]; then
+  [[ -f "$file" ]] || { echo "cca: no such plan file: $file (pass a path, pipe the plan in, or run cca with no argument to pick one)" >&2; exit 1; }
+  plan=$(<"$file")
+else
+  plan=$(cat)
+fi
 [[ -n "$plan" ]] || { echo "cca: the plan is empty" >&2; exit 1; }
+slug=$(cc_plan_slug "$plan")
 
-wt=$(cc_worktree "$(cc_plan_slug "$plan")")
-slug=${wt##*/}   # the worktree's name, including any timestamp cc_worktree added
-mkdir -p "$wt/plans"
-printf '%s\n' "$plan" > "$wt/plans/$slug.md"
-echo "cca: building in $wt (branch worktree-$slug)" >&2
+# where to build: a fresh worktree inside a repo, the current folder outside one
+if cc_repo_root >/dev/null; then
+  dir=$(cc_worktree "$slug")
+  slug=${dir##*/}   # the worktree's name, including any timestamp cc_worktree added
+  plan_file="$dir/plans/$slug.md"
+  mkdir -p "$dir/plans"
+  printf '%s\n' "$plan" > "$plan_file"
+  where="worktree $dir (branch worktree-$slug)"
+  after="when it's done, review with: ccr $slug"
+else
+  dir=$PWD
+  if [[ -n "$file" ]]; then
+    plan_file=$(realpath "$file")
+  else
+    mkdir -p "$CC_PLANS"
+    plan_file="$CC_PLANS/$slug-$(date +%s).md"
+    printf '%s\n' "$plan" > "$plan_file"
+  fi
+  where="$dir in place (not a git repo, so no worktree)"
+  after="there's no worktree, so ccr can't review this one; check the changes yourself"
+fi
 
-prompt="Implement the plan in plans/$slug.md. Don't commit; leave your changes uncommitted for review."
+echo "cca: plan   $plan_file" >&2
+echo "cca: agent  $agent${model:+ ($model)}" >&2
+echo "cca: where  $where" >&2
+echo "cca: $after" >&2
+
+prompt="Implement the plan in $plan_file. Don't commit; leave your changes uncommitted for review."
 case "$agent" in
   claude) printf -v cmd 'claude --permission-mode auto %s%q' "${model:+--model $model }" "$prompt" ;;
   cursor) printf -v cmd 'cursor-agent --force %q' "$prompt" ;;
@@ -53,7 +75,8 @@ case "$agent" in
     ;;
 esac
 
-cc_open_tab "$slug" "$wt" "$cmd"
+cc_open_tab "$slug" "$dir" "$cmd"
 # no cmux or tmux: run it in this terminal. stdin may have been the piped plan, so give the agent the keyboard back
-cd "$wt"
+echo "cca: running here in this terminal" >&2
+cd "$dir"
 exec bash -c "$cmd" < /dev/tty
