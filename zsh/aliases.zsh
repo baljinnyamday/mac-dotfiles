@@ -61,6 +61,19 @@ ccas() {
 bc()  { git checkout -b "$1"; }
 wc()  { git worktree add "../$1" -b "$1" "${2:-HEAD}" && cd "../$1"; }  # wc <name> [base], base defaults to current HEAD
 wcd() { cd "$(git worktree list | fzf --prompt='worktree> ' | awk '{print $1}')"; }
+# wca <name> [base]: wc for a folder of sibling repos (e.g. ~/coding/bagsh holding bagsh.back +
+# bagsh.space): one worktree per repo in ../<folder>-wt/<name>/<repo>, all on branch <name>, then
+# cds into that feature folder. Run it from the parent folder; base defaults to each repo's HEAD.
+wca() {
+  [[ -n $1 ]] || { echo "usage: wca <name> [base]" >&2; return 1; }
+  local dest=${PWD:h}/${PWD:t}-wt/$1 repo
+  local -a repos=(*/.git(N:h))
+  (( $#repos )) || { echo "wca: no git repos directly below $PWD" >&2; return 1; }
+  for repo in $repos; do
+    git -C "$repo" worktree add "$dest/$repo" -b "$1" "${2:-HEAD}" || return 1
+  done
+  cd "$dest"
+}
 
 # --- fzf pickers (frg, ff, fbr, fkill, dsh are scripts in ../bin) ---
 fcd() { cd "$(fd -t d | fzf)"; }   # fzf-pick any folder below this one and cd into it
