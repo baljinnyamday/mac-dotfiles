@@ -58,10 +58,10 @@ ccas() {
 }
 
 # --- branch / worktree create + merge-back (ship, wrm are scripts in ../bin) ---
-bc()  { git checkout -b "$1"; }
-wc()  { git worktree add "../$1" -b "$1" "${2:-HEAD}" && cd "../$1"; }  # wc <name> [base], base defaults to current HEAD
+cbn() { git checkout -b "$1"; }
+wt() { git worktree add "../$1" -b "$1" "${2:-HEAD}" && cd "../$1"; }  # wt <name> [base], base defaults to current HEAD
 wcd() { cd "$(git worktree list | fzf --prompt='worktree> ' | awk '{print $1}')"; }
-# wca <name> [base]: wc for a folder of sibling repos (e.g. ~/coding/bagsh holding bagsh.back +
+# wca <name> [base]: wt for a folder of sibling repos (e.g. ~/coding/bagsh holding bagsh.back +
 # bagsh.space): one worktree per repo in ../<folder>-wt/<name>/<repo>, all on branch <name>, then
 # cds into that feature folder. Run it from the parent folder; base defaults to each repo's HEAD.
 wca() {

@@ -20,7 +20,7 @@ Reference for everything in `zsh/aliases.zsh`, the command scripts in `bin/`, an
 - `ccreview` — fzf-pick a proposal, opens its markdown in `bat` to actually read it before trusting it (doesn't call any agent)
 - `ccapply <change-name> [-o|-s|-h] [-c]` — implements that change in its own git worktree, opened where you can watch/steer: a new cmux workspace (sidebar tab) inside cmux, so each agent gets its own notifications and session restore; a tmux window inside tmux, and otherwise Claude opens its own tmux session. `-c` runs `cursor-agent` instead (in the current terminal when you're in neither cmux nor tmux)
 
-**Worktrees from `ccapply` / `ccdo`** are Claude Code's own (`claude -w <name>`), not `wc`'s: they live in `.claude/worktrees/<name>/` (gitignored) on a branch `worktree-<name>`, branched from `origin`'s default branch (not your current branch; set `worktree.baseRef: "head"` in Claude settings to change that). When you exit the session, Claude removes a clean worktree and its branch (a named session asks first), and asks keep/remove if there are changes or new commits. Kept ones show up in `wcd` / `wrm` like any other worktree.
+**Worktrees from `ccapply` / `ccdo`** are Claude Code's own (`claude -w <name>`), not `wt`'s: they live in `.claude/worktrees/<name>/` (gitignored) on a branch `worktree-<name>`, branched from `origin`'s default branch (not your current branch; set `worktree.baseRef: "head"` in Claude settings to change that). When you exit the session, Claude removes a clean worktree and its branch (a named session asks first), and asks keep/remove if there are changes or new commits. Kept ones show up in `wcd` / `wrm` like any other worktree.
 
 ## Claude Code: plain-markdown pipeline (ccp → cca → ccr)
 
@@ -60,10 +60,10 @@ The planners differ because headless Cursor plan mode hangs, and headless agy ca
 
 ## Branch / worktree lifecycle
 
-- `bc <name>` — `git checkout -b <name>`, new branch and switch to it
-- `wc <name> [base]` — new worktree + branch in `../<name>`, and cds you into it; branches from `base` (e.g. `dev`, `origin/staging`), defaulting to the current branch
+- `cbn <name>` — `git checkout -b <name>`, new branch and switch to it
+- `wt <name> [base]` — new worktree + branch in `../<name>`, and cds you into it; branches from `base` (e.g. `dev`, `origin/staging`), defaulting to the current branch
 - `wcd` — fzf-pick an existing worktree, cd into it
-- `wca <name> [base]` — `wc` for a folder that isn't a repo itself but holds sibling repos (`~/coding/bagsh` with `bagsh.back` + `bagsh.space`). Run from that parent folder: makes one worktree per repo in `../<folder>-wt/<name>/<repo>` (so `~/coding/bagsh-wt/chat/bagsh.back` and `.../bagsh.space`), all on branch `<name>`, and cds you into the feature folder. Open that folder as one workspace/session. `wcd`, `ship`, `wrm` are per-repo, so run them inside each half. Each half needs its own `pnpm install`; `.env` files don't come along, copy or symlink them
+- `wca <name> [base]` — `wt` for a folder that isn't a repo itself but holds sibling repos (`~/coding/bagsh` with `bagsh.back` + `bagsh.space`). Run from that parent folder: makes one worktree per repo in `../<folder>-wt/<name>/<repo>` (so `~/coding/bagsh-wt/chat/bagsh.back` and `.../bagsh.space`), all on branch `<name>`, and cds you into the feature folder. Open that folder as one workspace/session. `wcd`, `ship`, `wrm` are per-repo, so run them inside each half. Each half needs its own `pnpm install`; `.env` files don't come along, copy or symlink them
 - `ship [gh args]` — pushes current branch (`-u`) and opens a PR with `gh pr create --fill`; extra args go to `gh`, e.g. `ship --base dev`
 - `wrm [-f]` — fzf-pick a worktree, removes it and deletes its local branch (run this after a PR merges, from outside the worktree: `wcd` to the main checkout first). Refuses if the worktree has uncommitted/untracked files; keeps the branch if its commits aren't merged or pushed anywhere. `-f` removes anyway and force-deletes the branch (what you want after a squash merge); it lists and asks before throwing away uncommitted files, and a deleted branch comes back with `git branch <name> <sha>` using the sha it prints
 
