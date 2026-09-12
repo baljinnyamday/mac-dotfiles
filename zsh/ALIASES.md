@@ -95,7 +95,7 @@ Don't run a local tmux inside cmux: cmux sees the whole tmux as one terminal, so
 - macOS: `flushdns`, `o` (open .), `ql` (quicklook), `ip`, `pubip`, `cpwd` (copy pwd), `dsclean` (delete .DS_Store), `brewup`
 - dev workflow: `killport [-f] <port>` (TERM the listener, `-f` for KILL), `port <port>`, `listening`, `json`/`jsonc` (pbpaste through jq)
 - docker/pnpm: `dps`, `dpsa`, `dcu`, `dcd`, `dcl`, `pr` (pnpm run)
-- zsh niceties: `G` (global alias for `| grep -i`), suffix aliases opening `json/yaml/yml/toml/md/txt` in `bat` and `ts/tsx/js/py/go/rs` in `cursor`
+- zsh niceties: global aliases that expand anywhere on the line: `G` (`| grep -i`), `C` (`| pbcopy`, copy the output), `J` (`| jq .`, pretty-print JSON); suffix aliases opening `json/yaml/yml/toml/md/txt` in `bat` and `ts/tsx/js/py/go/rs` in `cursor`
 
 ---
 

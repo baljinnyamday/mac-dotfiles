@@ -90,5 +90,7 @@ fcd() { cd "$(fd -t d | fzf)"; }   # fzf-pick any folder below this one and cd i
 
 # --- zsh: global + suffix aliases ---
 alias -g G='| grep -i'
+alias -g C='| pbcopy'   # copy output to the clipboard: pwd C
+alias -g J='| jq .'     # pretty-print JSON output: curl -s localhost:3000/api J
 alias -s {json,yaml,yml,toml,md,txt}=bat
 alias -s {ts,tsx,js,py,go,rs}=cursor
