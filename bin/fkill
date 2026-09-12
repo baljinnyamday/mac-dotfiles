@@ -1,10 +1,26 @@
 #!/usr/bin/env bash
-# fkill -- fuzzy-pick listening port(s)/process(es) from lsof (tab to multi-select), kill -9 them.
+# fkill [-f] -- fuzzy-pick listening port(s)/process(es) from lsof (tab to multi-select) and TERM them,
+# so they can shut down cleanly (Postgres, anything mid-write). Names survivors after a second.
+#   -f   send KILL instead, for the ones that ignore TERM
 set -euo pipefail
+
+sig=TERM
+case "${1:-}" in
+  -f|--force) sig=KILL ;;
+  "") ;;
+  *) echo 'usage: fkill [-f]' >&2; exit 1 ;;
+esac
 
 pids=$(
   lsof -nP -iTCP -sTCP:LISTEN | sed 1d |
-    fzf -m --header='select port(s)/process(es) to kill' |
+    fzf -m --header="select port(s)/process(es) to $sig" |
     awk '{print $2}' | sort -u
 ) || exit 0
-xargs kill -9 <<< "$pids"
+xargs kill -s "$sig" <<< "$pids"
+
+[[ "$sig" == TERM ]] || exit 0
+sleep 1
+for pid in $pids; do
+  kill -0 "$pid" 2>/dev/null && echo "$pid still running, use fkill -f" >&2
+done
+exit 0

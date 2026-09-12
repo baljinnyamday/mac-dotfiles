@@ -14,7 +14,17 @@ alias dsclean='fd -H -I "^\.DS_Store$" -x rm'
 alias brewup='brew update && brew upgrade && brew cleanup && brew doctor'
 
 # --- dev workflow ---
-killport() { lsof -ti tcp:"$1" | xargs -r kill -9; }
+# killport [-f] <port>: TERM whatever is listening on the port so it can shut down cleanly;
+# names it after a second if it's still up. -f sends KILL instead.
+killport() {
+  local sig=TERM; [[ $1 == -f ]] && { sig=KILL; shift; }
+  local pids; pids=$(lsof -ti tcp:"$1" -sTCP:LISTEN) || { echo "killport: nothing listening on ${1:-?}" >&2; return 1; }
+  kill -s $sig ${=pids}
+  [[ $sig == TERM ]] || return 0
+  sleep 1
+  local pid; for pid in ${=pids}; do kill -0 $pid 2>/dev/null && echo "$pid still running, use killport -f $1" >&2; done
+  return 0
+}
 port()     { lsof -nP -iTCP:"$1" -sTCP:LISTEN; }
 alias listening='lsof -nP -iTCP -sTCP:LISTEN'
 alias json='pbpaste | jq .'

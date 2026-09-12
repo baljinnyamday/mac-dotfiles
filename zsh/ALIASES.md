@@ -73,7 +73,7 @@ The planners differ because headless Cursor plan mode hangs, and headless agy ca
 - `ff` — fuzzy find a file by name, previews it, opens in `cursor` (your Ctrl+P)
 - `frg "<text>"` — fuzzy find text inside files (ripgrep), previews the match in `bat`, opens the pick in `cursor`
 - `fbr` — fuzzy-switch git branches
-- `fkill` — fuzzy-pick listening port(s)/process(es) (from `lsof`), kills them
+- `fkill [-f]` — fuzzy-pick listening port(s)/process(es) (from `lsof`), sends TERM so they shut down cleanly and names any still alive a second later; `-f` sends KILL for the stubborn ones
 - `dsh` — fuzzy-pick a running docker container, shells in (`bash` → `sh` → `docker debug` fallback for shell-less images)
 
 ## Terminals
@@ -93,7 +93,7 @@ Don't run a local tmux inside cmux: cmux sees the whole tmux as one terminal, so
 ## Everything else already in `aliases.zsh`
 
 - macOS: `flushdns`, `o` (open .), `ql` (quicklook), `ip`, `pubip`, `cpwd` (copy pwd), `dsclean` (delete .DS_Store), `brewup`
-- dev workflow: `killport <port>`, `port <port>`, `listening`, `json`/`jsonc` (pbpaste through jq)
+- dev workflow: `killport [-f] <port>` (TERM the listener, `-f` for KILL), `port <port>`, `listening`, `json`/`jsonc` (pbpaste through jq)
 - docker/pnpm: `dps`, `dpsa`, `dcu`, `dcd`, `dcl`, `pr` (pnpm run)
 - zsh niceties: `G` (global alias for `| grep -i`), suffix aliases opening `json/yaml/yml/toml/md/txt` in `bat` and `ts/tsx/js/py/go/rs` in `cursor`
 
