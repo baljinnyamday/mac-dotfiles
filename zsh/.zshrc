@@ -95,6 +95,11 @@ ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 [ -f "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ] && \
   source "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
 
+# --- Syntax highlighting: green = command exists, red = it doesn't, underlined = path exists ---
+# Must be sourced after every other plugin, which is why it sits here.
+[ -f "$HOMEBREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ] && \
+  source "$HOMEBREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+
 # Run a command on launch: open --env AUTORUN=claude -na Ghostty --args --working-directory=DIR
 [[ -n "$AUTORUN" ]] && { cmd="$AUTORUN"; unset AUTORUN; eval "$cmd"; }
 
