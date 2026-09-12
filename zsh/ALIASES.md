@@ -58,6 +58,8 @@ The planners differ because headless Cursor plan mode hangs, and headless agy ca
 
 - `ccas` — fzf-pick which `CLAUDE_CONFIG_DIR` all `cc*` aliases use (`~/.claude` default, `~/.ccw`, or type a new name to create `~/.claude-<name>`). Only affects the current terminal session — a new tab always starts back on default
 
+- `?? <what you want>` — Claude writes one shell command and pushes it onto your prompt line, unrun: enter runs it, Ctrl-C drops it, edit it first if you like. `?? find files over 100MB changed this week`. Question marks and `*` in the question are fine
+
 ## Branch / worktree lifecycle
 
 - `cbn <name>` — `git checkout -b <name>`, new branch and switch to it

@@ -54,6 +54,17 @@ ccpr()   { git diff main...HEAD | claude -p "review this diff for bugs; be terse
 ccx()    { claude -p "explain @$1 concisely"; }
 ccj()    { claude -p "$1" --output-format json | jq -r '.result'; }
 
+# ?? <what you want>: Claude writes one shell command and puts it on your prompt line, unrun.
+# Enter runs it, Ctrl-C drops it, or edit first. noglob keeps `*.ts` and a trailing `?` literal.
+alias '??'='noglob ccsh'
+ccsh() {
+  local cmd
+  cmd=$(claude -p --tools "" --no-session-persistence --output-format text \
+    --system-prompt "You write zsh one-liners for macOS with Homebrew. Prefer rg, fd, eza, bat, sd, jq, yq when they fit. Reply with the command only: no backticks, no explanation." \
+    "$*" </dev/null) || return 1
+  print -z -- "$cmd"
+}
+
 # --- claude code: opsx plan -> review -> apply pipeline, and small tasks ---
 # ccplan, ccreview, ccapply, ccdo, ccdoh are scripts in ../bin
 
