@@ -6,7 +6,8 @@
       "focusLeft": "cmd+h",
       "focusDown": "cmd+j",
       "focusUp": "cmd+k",
-      "focusRight": "cmd+l"
+      "focusRight": "cmd+l",
+      "equalizeSplits": "cmd+shift+="
     },
     "when": {
       "focusLeft": "paneCount > 1",
