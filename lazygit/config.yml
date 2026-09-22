@@ -5,6 +5,8 @@
 gui:
   nerdFontsVersion: "3"
   showRandomTip: false
+  filterMode: fuzzy               # / matches like fzf
+  statusPanelView: allBranchesLog # graph of every branch instead of the dashboard
   showCommandLog: false
   expandFocusedSidePanel: true
   showNumstatInFilesView: true
@@ -29,11 +31,12 @@ gui:
 
 git:
   # | cycles between these. Click a line number in the delta view to open it in Cursor.
+  # Colours, theme and line numbers come from [delta] in ~/.gitconfig so `git diff` matches.
   diffRenderers:
     - name: delta
-      command: delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
+      command: delta --paging=never --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
     - name: side-by-side
-      command: delta --dark --paging=never --side-by-side --line-numbers
+      command: delta --paging=never --side-by-side
   parseEmoji: true
 
 os:
@@ -47,6 +50,21 @@ update:
 disableStartupPopups: true
 
 customCommands:
+  # --- diff viewing ---
+  # The staging view (Enter on a file) can't use delta, so this opens the
+  # selected file or folder's diff full screen in delta with syntax colour.
+  # Untracked files are diffed against /dev/null. q returns to lazygit.
+  - key: <c-v>
+    context: files
+    description: "view selected diff in delta, full screen, with syntax colour"
+    command: >-
+      p={{.SelectedPath | quote}};
+      if git ls-files --error-unmatch -- "$p" >/dev/null 2>&1;
+      then git diff HEAD -- "$p";
+      else git diff --no-index -- /dev/null "$p";
+      fi | delta
+    output: terminal
+
   # --- claude (same prompts as the cc* aliases) ---
   - key: <c-g>
     context: files

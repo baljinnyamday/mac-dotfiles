@@ -5,6 +5,8 @@
 [core]
 	pager = delta
 	editor = cursor --wait
+	fsmonitor = true
+	untrackedCache = true
 [init]
 	defaultBranch = main
 [push]
@@ -22,7 +24,11 @@
 [interactive]
 	diffFilter = delta --color-only
 [delta]
+	# Shared by `git diff` and lazygit (its diffRenderers just run `delta --paging=never`)
 	navigate = true
+	dark = true
+	line-numbers = true
+	syntax-theme = Catppuccin Mocha
 [gpg]
 	program = /opt/homebrew/bin/gpg
 [include]
